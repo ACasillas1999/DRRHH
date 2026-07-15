@@ -26,4 +26,15 @@ class LaboralEmpleado extends Model
     {
         return $this->belongsTo(Personal::class, 'N_Empleado', 'N_Empleado');
     }
+
+    public function puesto(): BelongsTo
+    {
+        return $this->belongsTo(Puesto::class, 'ID_Puesto', 'ID');
+    }
+
+    public function razonSocial(): BelongsTo
+    {
+        // ojo: laborales_empleado.Nomeclatura vs razones_sociales.Nomenclatura (ortografía distinta en cada tabla)
+        return $this->belongsTo(RazonSocial::class, 'Nomeclatura', 'Nomenclatura');
+    }
 }
