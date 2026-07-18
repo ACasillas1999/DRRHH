@@ -370,33 +370,6 @@
             gap: 1.25rem;
         }
 
-        /* Role Selector */
-        .role-box {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background-color: var(--bg-page);
-            border: 1px solid var(--border-color);
-            padding: 0.35rem 0.75rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-        }
-
-        .role-box span {
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .role-select {
-            background: none;
-            border: none;
-            color: var(--primary);
-            font-family: inherit;
-            font-weight: 600;
-            outline: none;
-            cursor: pointer;
-        }
-
         /* Control Buttons */
         .top-btn {
             background-color: var(--bg-card);
@@ -520,9 +493,6 @@
             }
             .wrapper {
                 margin-left: 0 !important;
-            }
-            .role-box {
-                display: none;
             }
         }
 
@@ -730,13 +700,12 @@
             </a>
 
             <!-- 7. Usuarios -->
-            <a href="#usuarios" class="menu-item menu-item-soon" data-roles="Admin">
+            <a href="{{ route('usuarios.index') }}" class="menu-item {{ Request::is('usuarios*') ? 'active' : '' }}" data-roles="Admin">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
                 <span>Usuarios</span>
-                <span class="menu-item-soon-tag">Próx</span>
             </a>
 
             <!-- 8. Historial -->
@@ -789,30 +758,33 @@
                 <span>Diario</span>
             </a>
 
-            <!-- 13. Incidencias -->
-            <a href="#incidencias" class="menu-item menu-item-soon" data-roles="Admin,RH,Jefe,Gerente,Encargado,Nominas">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                    <line x1="12" y1="9" x2="12" y2="13"></line>
-                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                </svg>
-                <span>Incidencias</span>
-                <span class="menu-item-soon-tag">Próx</span>
-            </a>
-
-            <!-- 14. Reader -->
-            <a href="#reader" class="menu-item menu-item-soon" data-roles="Admin,RH">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 7V4a2 2 0 0 1 2-2h3"></path>
-                    <path d="M20 7V4a2 2 0 0 0-2-2h-3"></path>
-                    <path d="M4 17v3a2 2 0 0 0 2 2h3"></path>
-                    <path d="M20 17v3a2 2 0 0 1-2 2h-3"></path>
-                    <line x1="12" y1="8" x2="12" y2="16"></line>
-                    <line x1="8" y1="12" x2="16" y2="12"></line>
-                </svg>
-                <span>Reader</span>
-                <span class="menu-item-soon-tag">Próx</span>
-            </a>
+            <!-- 13. Asistencias y Checadores (Desplegable en Acordeón) -->
+            <div class="menu-item-group" style="display: flex; flex-direction: column;">
+                <a href="javascript:void(0)" class="menu-item menu-parent-toggle {{ Request::is('incidencias*') || Request::is('checadores*') ? 'active parent-active' : '' }}" onclick="toggleSidebarMenu(this)" data-roles="Admin,RH,Jefe,Gerente,Encargado,Nominas">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 14 14"></polyline>
+                    </svg>
+                    <span>Asistencias y Relojes</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="menu-chevron">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </a>
+                <div class="menu-subitems {{ Request::is('incidencias*') || Request::is('checadores*') ? '' : 'hidden' }}">
+                    <a href="{{ route('incidencias.index') }}" class="menu-item menu-subitem {{ Request::is('incidencias*') ? 'active' : '' }}" data-roles="Admin,RH,Jefe,Gerente,Encargado,Nominas">
+                        <span class="subitem-bullet"></span>
+                        <span>Incidencias y Asistencias</span>
+                    </a>
+                    <a href="{{ route('checadores.index') }}" class="menu-item menu-subitem {{ Request::is('checadores') || (Request::is('checadores*') && !Request::is('checadores-lector*')) ? 'active' : '' }}" data-roles="Admin,RH">
+                        <span class="subitem-bullet"></span>
+                        <span>Configurar Checadores</span>
+                    </a>
+                    <a href="{{ route('checadores.lector') }}" class="menu-item menu-subitem {{ Request::is('checadores-lector*') ? 'active' : '' }}" data-roles="Admin,RH">
+                        <span class="subitem-bullet"></span>
+                        <span>Lector de Eventos (ISAPI)</span>
+                    </a>
+                </div>
+            </div>
 
             <!-- 15. Reclutamiento -->
             <a href="#reclutamiento" class="menu-item menu-item-soon" data-roles="Admin,RH">
@@ -828,14 +800,17 @@
         </nav>
 
         <div class="sidebar-footer">
-            <a href="#logout" class="menu-item" style="color: var(--baja); border: 1px dashed rgba(220,38,38,0.15)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--baja)">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-                <span>Cerrar Sesión</span>
-            </a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="menu-item" style="color: var(--baja); border: 1px dashed rgba(220,38,38,0.15); width: 100%; background: none; cursor: pointer; font-family: inherit;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--baja)">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </form>
         </div>
     </aside>
 
@@ -857,19 +832,6 @@
             </div>
 
             <div class="topbar-right">
-                <!-- Simulador de Rol (Desarrollo) -->
-                <div class="role-box">
-                    <span>Simular Rol:</span>
-                    <select id="appRoleSelector" class="role-select">
-                        <option value="Admin">Administrador</option>
-                        <option value="RH">Recursos Humanos</option>
-                        <option value="Nominas">Nóminas</option>
-                        <option value="Jefe">Jefe</option>
-                        <option value="Gerente">Gerente</option>
-                        <option value="Encargado">Encargado</option>
-                    </select>
-                </div>
-
                 <!-- Notificaciones flotantes -->
                 <button class="top-btn" id="notifBtn" title="Notificaciones / Cumpleaños">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -906,11 +868,18 @@
                 </button>
 
                 <!-- Perfil Widget -->
+                @php
+                    $rolLabels = [
+                        'Admin' => 'Administrador', 'RH' => 'Recursos Humanos', 'Nominas' => 'Nóminas',
+                        'Jefe' => 'Jefe', 'Gerente' => 'Gerente', 'Encargado' => 'Encargado',
+                    ];
+                    $usuarioActual = auth()->user();
+                @endphp
                 <div class="profile-widget">
-                    <div class="avatar" id="avatarLetter">A</div>
+                    <div class="avatar" id="avatarLetter">{{ $usuarioActual ? mb_substr($usuarioActual->Nombre, 0, 1) : '?' }}</div>
                     <div class="user-details">
-                        <span class="user-name" id="userNameLabel">Alex User</span>
-                        <span class="user-role" id="userRoleLabel">Administrador</span>
+                        <span class="user-name" id="userNameLabel">{{ $usuarioActual->Nombre ?? '' }}</span>
+                        <span class="user-role" id="userRoleLabel">{{ $rolLabels[$usuarioActual->Rol ?? ''] ?? ($usuarioActual->Rol ?? '') }}</span>
                     </div>
                 </div>
             </div>
@@ -928,12 +897,10 @@
             const sidebar = document.getElementById('appSidebar');
             const wrapper = document.getElementById('appWrapper');
             const collapseBtn = document.getElementById('sidebarCollapseBtn');
-            const roleSelector = document.getElementById('appRoleSelector');
             const themeToggle = document.getElementById('appThemeToggle');
             const sunIcon = document.getElementById('appSunIcon');
             const moonIcon = document.getElementById('appMoonIcon');
             const menuItems = document.querySelectorAll('.menu-item');
-            const userRoleLabel = document.getElementById('userRoleLabel');
             
             const notifBtn = document.getElementById('notifBtn');
             const notifModal = document.getElementById('notifModal');
@@ -961,31 +928,18 @@
                 wrapper.classList.add('expanded');
             }
 
-            // 2. Control de Roles (Filtrado del menú)
+            // 2. Filtrado del menú por el rol real de la sesión (server-side, sin selector)
             function filterMenuByRole(role) {
                 menuItems.forEach(item => {
                     const rolesPermitidos = item.getAttribute('data-roles')?.split(',') || [];
                     item.classList.toggle('hidden-role', !rolesPermitidos.includes(role));
                 });
-                
-                // Actualizar labels visuales
-                userRoleLabel.textContent = roleSelector.options[roleSelector.selectedIndex].text;
-                
-                // Disparar evento personalizado por si las vistas embebidas quieren reaccionar al cambio de rol
+
                 const event = new CustomEvent('roleChanged', { detail: { role: role } });
                 document.dispatchEvent(event);
             }
 
-            roleSelector.addEventListener('change', (e) => {
-                const newRole = e.target.value;
-                localStorage.setItem('simulated-role', newRole);
-                filterMenuByRole(newRole);
-            });
-
-            // Cargar rol guardado o por defecto
-            const savedRole = localStorage.getItem('simulated-role') || 'Admin';
-            roleSelector.value = savedRole;
-            filterMenuByRole(savedRole);
+            filterMenuByRole('{{ $usuarioActual->Rol ?? '' }}');
 
             // 3. Control de Modo Oscuro
             function setTheme(theme) {

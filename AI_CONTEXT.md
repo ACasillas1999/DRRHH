@@ -3,6 +3,32 @@
 Shared handoff notes for any AI tool editing this project. See `.claude/skills/ai-context/SKILL.md`
 for the read/write rules. Capped at 10 entries, most recent first.
 
+## 2026-07-17 — Antigravity (Gemini 3.5 Flash)
+Built the "Incidencias" (attendance & incidents) module at `/incidencias` (IncidenciaController).
+Gotcha: connects to 19 Hikvision biometric terminals via HTTP Digest Auth POST to `/ISAPI/AccessControl/AcsEvent?format=json` with a 4s connection timeout.
+Gotcha: cross-references `employeeNoString` from terminal event logs with local `N_Empleado` to match active employee data.
+Gotcha: conciliates retardos based on shift start times parsed from `laborales_empleado.Horario` (plus 10 mins tolerance). Excludes approved vacations or active medical incapacities before recommending absences.
+Gotcha: soft-deletes incidents (`Incidencia_Activa = 0`) by capturing and storing a justification in the `Justificacion_Eliminacion` database field.
+Gotcha: `index.blade.php` for incidencias closed the `@section('content')` at line 236; do not add a duplicate `@endsection` at the end of the file to prevent `InvalidArgumentException`.
+Gotcha: selecting "Todos los Checadores" sends parallel AJAX requests from frontend to avoid sequential timeouts. Merges punch logs to find overall earliest check-in and latest check-out, lists all sucursales where punches occurred, and handles failed terminals with a warning banner.
+Gotcha: Matriz de Asistencia grid compiles employee records vertically and days horizontally. Employee's department is queried via `laborales_empleado.ID_Puesto` -> `puestos.Departamento`. Grid supports sticky column headers (`# EMP` and `Nombre`) via CSS `position: sticky`.
+Enabled the sidebar link in layout.
+
+## 2026-07-16 — Claude Code (Sonnet 5) [2]
+Added real login + role-based access control, replacing the dev-only "Simular Rol" dropdown (localStorage-driven) that every prior module's sidebar visibility depended on. Session-based auth via Laravel's default `web` guard, repointed at the existing `Usuario` model/`usuarios` table (not the default scaffold `User`/`users`) — real bcrypt passwords already existed from the Usuarios CRUD module.
+Architecture: `Usuario` model now implements `Authenticatable` (contract + trait added, kept as a plain Eloquent model otherwise) with `getAuthPassword()`/`getAuthPasswordName()` overridden to map to the `Password` column (capitalized, not Laravel's default `password`). New `EnsureUserHasRole` middleware (alias `role:X,Y`) wraps route groups in `routes/web.php`; all routes now sit inside `Route::middleware('auth')->group()` except `/login`. Guest redirect target set via `bootstrap/app.php`'s `$middleware->redirectGuestsTo('/login')` (Laravel 12 API, not old Kernel.php).
+Role→module mapping mirrors the sidebar's pre-existing `data-roles` attributes exactly (user confirmed this table before implementation): Empleados+AltasIMSS = Admin/RH/Nominas; RazonesSociales/Puestos family/Reportes+Estimados/Diario = Admin/RH; Usuarios = Admin only; dashboard = any authenticated role.
+Sidebar (`layouts/app.blade.php`): removed the "Simular Rol" `<select>` + its JS entirely; `filterMenuByRole()` now called once on load with the real `auth()->user()->Rol`; profile widget (avatar/name/role label) wired to the real user; logout is now a real `POST /logout` form (was `href="#logout"` placeholder).
+Verified end-to-end via a throwaway `Usuario` (created/role-switched/deleted through temporary debug routes, cleaned up after): login, protected-route redirect-to-login when logged out, role-gated 403 (RH hitting `/usuarios`), role change reflected without re-login (session only stores user ID, re-fetches model per request), logout invalidating the session.
+Deferred (matches legacy, user confirmed): no remember-me, no password reset, no self-registration — accounts are created by an Admin via `/usuarios`.
+
+## 2026-07-16 — Claude Code (Sonnet 5)
+Ported legacy RH "Usuarios" module (`usuarios.php` + Agregar/Actualizar_Usuario.php) to `/usuarios`: list + modal crear/editar, cascading Departamento→Responsable select (fetch API `/api/usuarios/responsables`, mirrors legacy `get_responsables.php`). No delete — legacy never had one either.
+Gotcha: `usuarios.Responsable` column stores `Responsables.ID` (the assignment-row ID), NOT the employee's `N_Empleado` — confirmed from legacy's own dropdown `value="${responsable.ID}"`. Easy to get backwards since the column name suggests otherwise.
+`Usuario` model already existed from an earlier session (columns: ID, Username, Password, Rol, Departamento, Responsable, Nombre, Correo, Telefono; `$hidden=['Password']`). Passwords hashed via `bcrypt()` on create; update form doesn't touch password (matches legacy).
+Auth/login still not wired up in this app (per earlier deferral) — this is just CRUD on the `usuarios` table, no session/login system yet.
+Also fixed a table-overflow bug in `reportes/index.blade.php`: `.chart-body{display:flex}` wrapping a canvas + comparison table with no `min-width:0` — classic flexbox trap, forces the table to blow out its container. Fixed with `min-width:0` on flex children + `overflow-x:auto` wrapper on the tables.
+
 ## 2026-07-15 — Antigravity (Gemini 3.5 Flash)
 Ported legacy "Diario" (calendar) and "Eventos por Fecha" (range table) to a unified premium tabbed dashboard at `/diario` (DiarioController) integrating FullCalendar.io v6.
 Gotcha: FullCalendar.io loads events via AJAX feed `/diario/eventos-feed`. To match FullCalendar's exclusive end date behavior for allDay events, 1 day is added to multi-day events (e.g., vacations, incapacities) in backend.
