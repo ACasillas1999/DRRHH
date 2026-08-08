@@ -18,10 +18,34 @@
         </div>
     </div>
 
+    @if (session('success') || session('status'))
+        <div class="alert-box-success">{{ session('success') ?? session('status') }}</div>
+    @endif
+    @if (session('error'))
+        <div class="alert-box-error-flash">{{ session('error') }}</div>
+    @endif
+
     <!-- Contenido en dos columnas (Listado y Formulario) -->
     <div class="checadores-grid">
         <!-- Columna Izquierda: Listado -->
         <div class="checadores-list-col">
+            <div class="control-filters-card" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                    <div class="table-toolbar-title" style="margin-bottom: 0.15rem;">Recepción en tiempo real (push)</div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Los checadores avisan solos cuando alguien marca, en vez de esperar a que consultes manualmente.</p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <form method="POST" action="{{ route('checadores.push.activarTodos') }}" onsubmit="return confirm('¿Activar push en tiempo real en TODOS los checadores activos? La primera vez, cada dispositivo puede tardar varios minutos en drenar su historial antes de asentarse.');">
+                        @csrf
+                        <button type="submit" class="btn-primary-crud" style="width: auto; padding: 0.5rem 1rem;">Activar en Todos</button>
+                    </form>
+                    <form method="POST" action="{{ route('checadores.push.desactivarTodos') }}" onsubmit="return confirm('¿Desactivar push en tiempo real en todos los checadores?');">
+                        @csrf
+                        <button type="submit" class="btn-secondary">Desactivar en Todos</button>
+                    </form>
+                </div>
+            </div>
+
             <div class="table-container-card">
                 <div class="table-header-toolbar flex-between">
                     <h3 class="table-toolbar-title">Dispositivos Registrados</h3>
@@ -43,6 +67,7 @@
                                 <th>Puerto</th>
                                 <th>Usuario</th>
                                 <th>Estado</th>
+                                <th>Push</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -59,10 +84,34 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div style="display: flex; gap: 0.4rem;">
+                                        @if($ch->push_habilitado)
+                                            <span class="status-badge badge-ontime" title="{{ $ch->push_ultimo_evento_at ? 'Último evento: '.\Illuminate\Support\Carbon::parse($ch->push_ultimo_evento_at)->diffForHumans() : 'Sin eventos recibidos todavía' }}">
+                                                Activo{{ $ch->push_ultimo_evento_at ? ' · '.\Illuminate\Support\Carbon::parse($ch->push_ultimo_evento_at)->diffForHumans() : '' }}
+                                            </span>
+                                        @else
+                                            <span class="status-badge badge-off">Inactivo</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
                                             <button type="button" class="btn-action-edit" onclick="openEditModal({{ json_encode($ch) }})">
                                                 Editar
                                             </button>
+                                            @if($ch->push_habilitado)
+                                                <form method="POST" action="{{ route('checadores.push.desactivar', $ch->id) }}">
+                                                    @csrf
+                                                    <button type="submit" class="btn-action-delete" style="background-color: rgba(217, 119, 6, 0.08); color: #b45309; border-color: rgba(217, 119, 6, 0.15);">
+                                                        Desactivar Push
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form method="POST" action="{{ route('checadores.push.activar', $ch->id) }}">
+                                                    @csrf
+                                                    <button type="submit" class="btn-action-edit">
+                                                        Activar Push
+                                                    </button>
+                                                </form>
+                                            @endif
                                             <form method="POST" action="{{ route('checadores.destroy', $ch->id) }}" onsubmit="return confirm('¿Seguro que deseas eliminar este checador?');">
                                                 @csrf
                                                 @method('DELETE')
@@ -75,11 +124,21 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="no-records-row">No hay checadores registrados en el sistema.</td>
+                                    <td colspan="7" class="no-records-row">No hay checadores registrados en el sistema.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <div class="table-container-card" style="margin-top: 1rem;">
+                <div class="table-header-toolbar">
+                    <h3 class="table-toolbar-title">Actividad Reciente del Push</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0.3rem 0 0;">Se actualiza solo cada 5 segundos.</p>
+                </div>
+                <div id="push-activity-list" style="max-height: 320px; overflow-y: auto; padding: 0.5rem 1.25rem;">
+                    <p class="no-records-row" style="padding: 1.5rem !important;">Cargando actividad...</p>
                 </div>
             </div>
         </div>
@@ -205,6 +264,26 @@
         align-items: center;
         gap: 1.25rem;
         box-shadow: var(--shadow-sm);
+    }
+
+    .alert-box-success {
+        background-color: rgba(22, 163, 74, 0.08);
+        border: 1px solid rgba(22, 163, 74, 0.2);
+        color: var(--activo);
+        padding: 0.85rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .alert-box-error-flash {
+        background-color: rgba(220, 38, 38, 0.08);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        color: var(--baja);
+        padding: 0.85rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 600;
     }
 
     .checadores-grid {
@@ -388,6 +467,174 @@
         font-family: var(--font-mono, monospace);
         font-size: 0.8rem;
     }
+
+    .btn-action-delete {
+        background-color: rgba(220, 38, 38, 0.08);
+        color: var(--baja);
+        border: 1px solid rgba(220, 38, 38, 0.15);
+        padding: 0.35rem 0.65rem;
+        font-size: 0.725rem;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all var(--transition-speed) ease;
+    }
+
+    .btn-action-delete:hover {
+        background-color: var(--baja);
+        color: white;
+    }
+
+    .btn-secondary {
+        background-color: var(--bg-page);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        padding: 0.55rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        height: 40px;
+        transition: all var(--transition-speed) ease;
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--bg-card-hover);
+    }
+
+    .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .control-filters-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1rem;
+    }
+
+    .table-toolbar-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .table-container-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .table-header-toolbar {
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .premium-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 0.875rem;
+    }
+
+    .premium-table th {
+        background-color: var(--bg-page);
+        color: var(--text-muted);
+        font-weight: 600;
+        padding: 0.85rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .premium-table td {
+        padding: 0.85rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+        color: var(--text-main);
+    }
+
+    .premium-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .premium-table tr:hover td {
+        background-color: var(--bg-card-hover);
+    }
+
+    .font-semibold {
+        font-weight: 600;
+    }
+
+    .no-records-row {
+        text-align: center;
+        padding: 3rem !important;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.725rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .badge-ontime { background-color: rgba(22, 163, 74, 0.1); color: var(--activo); }
+    .badge-off { background-color: var(--bg-page); border: 1px solid var(--border-color); color: var(--text-muted); }
+
+    .search-input-box {
+        position: relative;
+        width: 100%;
+        max-width: 480px;
+    }
+
+    .search-input-box.compact {
+        max-width: 320px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+    }
+
+    .search-input-box input {
+        width: 100%;
+        background-color: var(--bg-page);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.5rem 1rem 0.5rem 2.25rem;
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--text-main);
+        outline: none;
+        transition: border-color var(--transition-speed) ease;
+    }
+
+    .search-input-box input:focus {
+        border-color: var(--primary);
+    }
 </style>
 @endpush
 
@@ -437,5 +684,27 @@
             rows[i].style.display = rowContainsFilter ? "" : "none";
         }
     }
+
+    // Actividad reciente del push (polling cada 5 seg)
+    function cargarActividadPush() {
+        fetch('{{ route('checadores.push.actividad') }}')
+            .then(res => res.json())
+            .then(data => {
+                const cont = document.getElementById('push-activity-list');
+                if (!data.lineas || data.lineas.length === 0) {
+                    cont.innerHTML = '<p class="no-records-row" style="padding: 1.5rem !important;">Todavía no hay actividad de push registrada.</p>';
+                    return;
+                }
+                cont.innerHTML = data.lineas.map(linea => {
+                    const esIgnorado = linea.includes('Ignorado');
+                    const color = esIgnorado ? 'var(--text-muted)' : 'var(--text-main)';
+                    return `<div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); font-size: 0.8rem; color: ${color}; font-family: var(--font-mono, monospace);">${linea.replace(/</g, '&lt;')}</div>`;
+                }).join('');
+            })
+            .catch(() => {});
+    }
+
+    cargarActividadPush();
+    setInterval(cargarActividadPush, 5000);
 </script>
 @endpush

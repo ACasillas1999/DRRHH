@@ -21,14 +21,7 @@
 
     <!-- Pestañas (Tabs) -->
     <div class="incidencias-tabs">
-        <button class="tab-btn active" onclick="switchTab('conciliacion-tab', this)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 14 14"></polyline>
-            </svg>
-            Conciliación del Checador
-        </button>
-        <button class="tab-btn" onclick="switchTab('matriz-tab', this)">
+        <button class="tab-btn active" onclick="switchTab('matriz-tab', this)">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="9" y1="3" x2="9" y2="21"></line>
@@ -37,6 +30,13 @@
                 <line x1="3" y1="15" x2="21" y2="15"></line>
             </svg>
             Matriz de Asistencia
+        </button>
+        <button class="tab-btn" onclick="switchTab('conciliacion-tab', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
+            Conciliación del Checador
         </button>
         <button class="tab-btn" onclick="switchTab('historial-tab', this)">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -52,7 +52,7 @@
     </div>
 
     <!-- PESTAÑA 1: CONCILIACIÓN DEL CHECADOR -->
-    <div id="conciliacion-tab" class="tab-content active">
+    <div id="conciliacion-tab" class="tab-content">
         <!-- Tarjeta de Controles de Consulta -->
         <div class="control-filters-card">
             <div class="filters-grid">
@@ -62,11 +62,21 @@
                 </div>
 
                 <div class="filter-group">
+                    <label for="sucursal-select">Seleccionar Sucursal:</label>
+                    <select id="sucursal-select" class="form-control">
+                        <option value="" selected>-- Todas las Sucursales --</option>
+                        @foreach($sucursalesList as $suc)
+                            <option value="{{ $suc }}">{{ $suc }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="filter-group">
                     <label for="biometric-select">Seleccionar Checador:</label>
                     <select id="biometric-select" class="form-control">
-                        <option value="all">-- Todos los Checadores (Consolidar) --</option>
+                        <option value="all" selected>-- Todos los Checadores (Consolidar) --</option>
                         @foreach($devices as $name => $ip)
-                            <option value="{{ $ip }}" {{ $name === 'Federalismo' ? 'selected' : '' }}>
+                            <option value="{{ $ip }}">
                                 {{ $name }} ({{ $ip }})
                             </option>
                         @endforeach
@@ -109,6 +119,7 @@
                 <div class="spinner"></div>
                 <p>Conectando al biométrico y conciliando asistencias...</p>
                 <span class="subtext">Esto puede tomar hasta 4 segundos según el estado de la red.</span>
+                <div id="biometric-loader-progress" class="loader-progress-list"></div>
             </div>
 
             <!-- Estado Inicial Vacío -->
@@ -123,14 +134,14 @@
                 <table class="premium-table" id="conciliatorTable">
                     <thead>
                         <tr>
-                            <th>N_Emp</th>
-                            <th>Empleado</th>
-                            <th>Puesto</th>
-                            <th>Sucursal</th>
-                            <th>Horario</th>
-                            <th>1ª Checada</th>
-                            <th>Última Checada</th>
-                            <th>Estado</th>
+                            <th onclick="sortTable('conciliatorTable', 0, true)" style="cursor: pointer; user-select: none;" title="Ordenar por número de empleado">N_Emp <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('conciliatorTable', 1, false)" style="cursor: pointer; user-select: none;" title="Ordenar por empleado">Empleado <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('conciliatorTable', 2, false)" style="cursor: pointer; user-select: none;" title="Ordenar por puesto">Puesto <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('conciliatorTable', 3, false)" style="cursor: pointer; user-select: none;" title="Ordenar por sucursal">Sucursal <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('conciliatorTable', 4, false)" style="cursor: pointer; user-select: none;" title="Ordenar por horario">Horario <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('conciliatorTable', 5, false)" style="cursor: pointer; user-select: none;" title="Ordenar por primera checada">1ª Checada <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('conciliatorTable', 6, false)" style="cursor: pointer; user-select: none;" title="Ordenar por última checada">Última Checada <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('conciliatorTable', 7, false)" style="cursor: pointer; user-select: none;" title="Ordenar por estado">Estado <span class="sort-icon">⇅</span></th>
                             <th>Acciones Rápidas</th>
                         </tr>
                     </thead>
@@ -143,7 +154,7 @@
     </div>
 
     <!-- PESTAÑA 2: MATRIZ DE ASISTENCIA -->
-    <div id="matriz-tab" class="tab-content">
+    <div id="matriz-tab" class="tab-content active">
         <div class="control-filters-card">
             <form method="GET" action="{{ route('incidencias.index') }}" class="filters-form" id="matrixFilterForm">
                 <input type="hidden" name="tab" value="matriz-tab">
@@ -211,28 +222,48 @@
         <div class="table-container-card">
             <div class="table-header-toolbar flex-between">
                 <h3 class="table-toolbar-title">Cuadrícula de Asistencia</h3>
-                <div class="search-input-box compact">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input type="text" id="matrixSearch" onkeyup="filterMatrixTable()" placeholder="Buscar empleado...">
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                    <div class="search-input-box compact">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="matrixSearch" onkeyup="filterMatrixTable()" placeholder="Buscar empleado...">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <label for="matrixPageSize" style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">Mostrar:</label>
+                        <select id="matrixPageSize" class="form-control" style="min-width: auto;" onchange="matrixChangePageSize()">
+                            <option value="10">10</option>
+                            <option value="100" selected>100</option>
+                            <option value="all">Todos</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="table-responsive" style="max-height: 600px; overflow: auto;">
+            <div class="matrix-pagination-bar">
+                <span id="matrixPaginationInfo">—</span>
+                <div style="display: flex; gap: 0.4rem;">
+                    <button type="button" class="btn-secondary" onclick="matrixChangePage(-1)" id="matrixPrevBtn">« Anterior</button>
+                    <button type="button" class="btn-secondary" onclick="matrixChangePage(1)" id="matrixNextBtn">Siguiente »</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
                 <table class="premium-table matrix-grid-table" id="matrixGridTable">
                     <thead>
                         <tr>
-                            <th class="sticky-col first-header"># EMP</th>
-                            <th class="sticky-col second-header">Nombre Completo</th>
-                            <th>Razón Social</th>
-                            <th>Física</th>
-                            <th>Horario</th>
-                            <th>KPI's</th>
-                            @foreach($matrixDates as $dateStr)
-                                <th class="date-header-cell" title="{{ $dateStr }}">
-                                    {{ \Carbon\Carbon::parse($dateStr)->format('d') }}
+                            <th class="sticky-col first-header" onclick="sortMatrixTable(0, true)" style="cursor: pointer; user-select: none;" title="Ordenar por número de empleado"># EMP <span class="sort-icon">⇅</span></th>
+                            <th class="sticky-col second-header" onclick="sortMatrixTable(1, false)" style="cursor: pointer; user-select: none;" title="Ordenar por nombre completo">Nombre Completo <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortMatrixTable(2, false)" style="cursor: pointer; user-select: none;" title="Ordenar por razón social">Razón Social <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortMatrixTable(3, false)" style="cursor: pointer; user-select: none;" title="Ordenar por sucursal física">Física <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortMatrixTable(4, false)" style="cursor: pointer; user-select: none;" title="Ordenar por horario">Horario <span class="sort-icon">⇅</span></th>
+                            @foreach($matrixDates as $index => $dateStr)
+                                <th class="date-header-cell" title="Ordenar por la asistencia del día {{ \Carbon\Carbon::parse($dateStr)->format('d/m/Y') }}" onclick="sortMatrixTable({{ 5 + $index }}, false)" style="cursor: pointer; user-select: none; text-align: center; vertical-align: middle; padding: 0.4rem 0.25rem;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 24px;">
+                                        <span style="font-size: 0.8rem; font-weight: 700;">{{ \Carbon\Carbon::parse($dateStr)->format('d') }}</span>
+                                        <span class="sort-icon" style="font-size: 0.65rem; opacity: 0.5;">⇅</span>
+                                    </div>
                                 </th>
                             @endforeach
                         </tr>
@@ -245,11 +276,31 @@
                                 <td>{{ $row['razon_social'] }}</td>
                                 <td>{{ $row['sucursal'] }}</td>
                                 <td style="font-size: 0.8rem; white-space: nowrap;">{{ $row['horario'] }}</td>
-                                <td class="font-semibold text-center">{{ $row['kpi'] }}</td>
                                 @foreach($matrixDates as $dateStr)
-                                    @php $code = $row['days'][$dateStr] ?? ''; @endphp
-                                    <td class="text-center matrix-cell-code">
-                                        @if($code === 'R')
+                                    @php 
+                                        $dayData = $row['days'][$dateStr] ?? ['code' => '', 'p_checada' => '—', 'u_checada' => '—', 'justificacion' => '', 'id_incidencia' => null];
+                                        $code = is_array($dayData) ? ($dayData['code'] ?? '') : $dayData;
+                                        $pChecada = is_array($dayData) ? ($dayData['p_checada'] ?? '—') : '—';
+                                        $uChecada = is_array($dayData) ? ($dayData['u_checada'] ?? '—') : '—';
+                                        $justificacion = is_array($dayData) ? ($dayData['justificacion'] ?? '') : '';
+                                        $idIncidencia = is_array($dayData) ? ($dayData['id_incidencia'] ?? null) : null;
+                                    @endphp
+                                    <td class="text-center matrix-cell-code" 
+                                        data-emp="{{ $row['n_empleado'] }}"
+                                        data-name="{{ addslashes($row['nombre']) }}"
+                                        data-sucursal="{{ addslashes($row['sucursal']) }}"
+                                        data-horario="{{ addslashes($row['horario']) }}"
+                                        data-fecha="{{ $dateStr }}"
+                                        data-code="{{ $code }}"
+                                        data-pchecada="{{ $pChecada }}"
+                                        data-uchecada="{{ $uChecada }}"
+                                        data-justificacion="{{ addslashes($justificacion) }}"
+                                        data-incidencia-id="{{ $idIncidencia }}"
+                                        onclick="openMatrixCellModal(this)"
+                                        title="Ver detalle de {{ $row['nombre'] }} - {{ \Carbon\Carbon::parse($dateStr)->format('d/m/Y') }}">
+                                        @if($code === 'A')
+                                            <span class="matrix-badge m-asistencia" title="A tiempo / Asistencia">A</span>
+                                        @elseif($code === 'R')
                                             <span class="matrix-badge m-retardo" title="Retardo">R</span>
                                         @elseif($code === 'F')
                                             <span class="matrix-badge m-falta" title="Falta">F</span>
@@ -259,6 +310,8 @@
                                             <span class="matrix-badge m-vacacion" title="Vacaciones">V</span>
                                         @elseif($code === 'I')
                                             <span class="matrix-badge m-incapacity" title="Incapacidad">I</span>
+                                        @elseif($code === 'D')
+                                            <span class="matrix-badge m-descanso" title="Día de descanso">D</span>
                                         @endif
                                     </td>
                                 @endforeach
@@ -311,13 +364,13 @@
                 <table class="premium-table" id="historialTable">
                     <thead>
                         <tr>
-                            <th>N_Emp</th>
-                            <th>Empleado</th>
-                            <th>Puesto</th>
-                            <th>Sucursal</th>
-                            <th>Fecha</th>
-                            <th>Incidencia</th>
-                            <th>Fecha de Registro</th>
+                            <th onclick="sortTable('historialTable', 0, true)" style="cursor: pointer; user-select: none;" title="Ordenar por número de empleado">N_Emp <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('historialTable', 1, false)" style="cursor: pointer; user-select: none;" title="Ordenar por empleado">Empleado <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('historialTable', 2, false)" style="cursor: pointer; user-select: none;" title="Ordenar por puesto">Puesto <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('historialTable', 3, false)" style="cursor: pointer; user-select: none;" title="Ordenar por sucursal">Sucursal <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('historialTable', 4, false, true)" style="cursor: pointer; user-select: none;" title="Ordenar por fecha">Fecha <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('historialTable', 5, false)" style="cursor: pointer; user-select: none;" title="Ordenar por tipo de incidencia">Incidencia <span class="sort-icon">⇅</span></th>
+                            <th onclick="sortTable('historialTable', 6, false, true)" style="cursor: pointer; user-select: none;" title="Ordenar por fecha de registro">Fecha de Registro <span class="sort-icon">⇅</span></th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -330,7 +383,14 @@
                                 <td>{{ $inc->personal->laboral->Fisica ?? '—' }}</td>
                                 <td>{{ \Carbon\Carbon::parse($inc->Fecha)->format('d/m/Y') }}</td>
                                 <td>
-                                    <span class="event-type-pill {{ $inc->Tipo_Incidencia === 'Retardo' ? 'pill-retardo' : 'pill-falta' }}">
+                                    <span class="event-type-pill @if($inc->Tipo_Incidencia === 'Retardo') pill-retardo @elseif($inc->Tipo_Incidencia === 'Falta') pill-falta @elseif($inc->Tipo_Incidencia === 'Asistencia') pill-asistencia @else pill-justificado @endif">
+                                        <span class="matrix-badge @if($inc->Tipo_Incidencia === 'Retardo') m-retardo @elseif($inc->Tipo_Incidencia === 'Falta') m-falta @elseif($inc->Tipo_Incidencia === 'Asistencia') m-asistencia @else m-justificado @endif" style="width: 16px; height: 16px; font-size: 0.65rem; margin-right: 0.35rem; display: inline-flex; vertical-align: middle; border-radius: 4px;">
+                                            @if($inc->Tipo_Incidencia === 'Retardo') R
+                                            @elseif($inc->Tipo_Incidencia === 'Falta') F
+                                            @elseif($inc->Tipo_Incidencia === 'Asistencia') A
+                                            @else J
+                                            @endif
+                                        </span>
                                         {{ $inc->Tipo_Incidencia }}
                                     </span>
                                 </td>
@@ -351,6 +411,8 @@
             </div>
         </div>
     </div>
+
+
 </div>
 
 <!-- MODAL PARA INGRESAR JUSTIFICACIÓN DE ELIMINACIÓN -->
@@ -376,6 +438,116 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL PARA VER DETALLE DE ASISTENCIA/INCIDENCIA DESDE LA MATRIZ -->
+<div id="matrixDetailModal" class="modal-overlay hidden">
+    <div class="modal-content card animate-fade-in" style="max-width: 520px;">
+        <div class="modal-header">
+            <h4>Detalle de Asistencia</h4>
+            <button type="button" class="btn-close-modal" onclick="closeMatrixDetailModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem;">
+                <div>
+                    <span id="md-emp-id" class="font-semibold" style="color: var(--primary); font-size: 0.85rem;"># ---</span>
+                    <h3 id="md-emp-name" style="font-size: 1.1rem; font-weight: 700; margin: 0.15rem 0;">---</h3>
+                    <p id="md-emp-meta" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">---</p>
+                </div>
+                <div id="md-badge-container">
+                    <!-- Dynamic Badge -->
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-top: 0.5rem;">
+                <div style="background-color: var(--bg-page); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <span style="font-size: 0.725rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Fecha</span>
+                    <div id="md-fecha" style="font-size: 0.9rem; font-weight: 700; margin-top: 0.2rem;">---</div>
+                </div>
+                <div style="background-color: var(--bg-page); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <span style="font-size: 0.725rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Horario</span>
+                    <div id="md-horario" style="font-size: 0.9rem; font-weight: 700; margin-top: 0.2rem;">---</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-top: 0.5rem;">
+                <div style="background-color: rgba(22, 163, 74, 0.05); padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(22, 163, 74, 0.2);">
+                    <span style="font-size: 0.725rem; font-weight: 600; color: var(--activo); text-transform: uppercase;">1ª Checada (Entrada)</span>
+                    <div id="md-pchecada" style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin-top: 0.2rem;">—</div>
+                </div>
+                <div style="background-color: rgba(37, 99, 235, 0.05); padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(37, 99, 235, 0.2);">
+                    <span style="font-size: 0.725rem; font-weight: 600; color: #2563eb; text-transform: uppercase;">Última Checada (Salida)</span>
+                    <div id="md-uchecada" style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin-top: 0.2rem;">—</div>
+                </div>
+            </div>
+
+            <div style="background-color: var(--bg-page); padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 0.5rem;">
+                <span style="font-size: 0.725rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Estado y Observaciones</span>
+                <p id="md-obs" style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.35rem; line-height: 1.4;">---</p>
+            </div>
+
+            <!-- Justificación registrada (visible para todos si existe) -->
+            <div id="md-justification-view-section" style="margin-top: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem; display: none;">
+                <span style="font-size: 0.725rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Justificación registrada</span>
+                <p id="md-justification-view-text" style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.25rem; font-style: italic; background-color: rgba(0, 0, 0, 0.02); padding: 0.5rem; border-radius: 6px; border: 1px dashed var(--border-color);"></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; gap: 1rem;">
+                <div>
+                    @if(in_array(auth()->user()->Rol ?? '', ['Admin', 'RH']))
+                    <button type="button" class="btn-primary-action" onclick="openMatrixEditFromDetail()" style="padding: 0.5rem 1rem; font-size: 0.85rem; height: auto;">
+                        Justificar / Editar
+                    </button>
+                    @endif
+                </div>
+                <button type="button" class="btn-secondary" onclick="closeMatrixDetailModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if(in_array(auth()->user()->Rol ?? '', ['Admin', 'RH']))
+<!-- MODAL PARA EDITAR/JUSTIFICAR ASISTENCIA DESDE LA MATRIZ -->
+<div id="matrixEditModal" class="modal-overlay hidden">
+    <div class="modal-content card animate-fade-in" style="max-width: 480px;">
+        <div class="modal-header">
+            <h4>Justificar / Editar Asistencia</h4>
+            <button type="button" class="btn-close-modal" onclick="closeMatrixEditModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
+                <h5 id="me-emp-name" style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--text-main);">---</h5>
+                <p id="me-emp-meta" style="font-size: 0.8rem; color: var(--text-muted); margin: 0.15rem 0 0 0;">Fecha: ---</p>
+            </div>
+            
+            <input type="hidden" id="me-edit-emp">
+            <input type="hidden" id="me-edit-fecha">
+            
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label for="me-edit-tipo" style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);">Cambiar Estado:</label>
+                    <select id="me-edit-tipo" class="form-control" style="width: 100%; margin-top: 0.25rem; padding: 0.45rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-card); color: var(--text-main);">
+                        <option value="Asistencia">Asistencia</option>
+                        <option value="Retardo">Retardo</option>
+                        <option value="Falta">Falta</option>
+                        <option value="Justificado">Justificado</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="me-edit-justificacion-text" style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);">Justificación / Comentario:</label>
+                    <textarea id="me-edit-justificacion-text" class="form-control" rows="3" style="width: 100%; margin-top: 0.25rem; padding: 0.45rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-card); color: var(--text-main); font-family: inherit;" placeholder="Ej. Presentó justificante médico o aviso de retraso..."></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="btn-secondary" onclick="closeMatrixEditModal()">Cancelar</button>
+            <button type="button" class="btn-primary-action" onclick="saveMatrixJustification(this)" style="height: auto; padding: 0.55rem 1.25rem;">
+                Guardar Cambios
+            </button>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
 
 @push('styles')
@@ -386,6 +558,13 @@
         flex-direction: column;
         gap: 1.5rem;
         animation: fadeIn 0.4s ease;
+    }
+
+    .sort-icon {
+        font-size: 0.85rem;
+        opacity: 0.6;
+        margin-left: 4px;
+        user-select: none;
     }
 
     /* Sticky columns para la matriz de asistencia */
@@ -436,11 +615,13 @@
         line-height: 1;
     }
 
+    .m-asistencia { background-color: #dcfce7; color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.2); }
     .m-retardo { background-color: #fef9c3; color: #ca8a04; border: 1px solid rgba(202, 138, 4, 0.2); }
     .m-falta { background-color: #fee2e2; color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.2); }
-    .m-justificado { background-color: #dcfce7; color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.2); }
+    .m-justificado { background-color: #e0f2fe; color: #0369a1; border: 1px solid rgba(3, 105, 161, 0.2); }
     .m-vacacion { background-color: #dbeafe; color: #2563eb; border: 1px solid rgba(37, 99, 235, 0.2); }
     .m-incapacity { background-color: #f3e8ff; color: #9333ea; border: 1px solid rgba(147, 51, 234, 0.2); }
+    .m-descanso { background-color: var(--bg-page); color: var(--text-muted); border: 1px solid var(--border-color); opacity: 0.6; }
 
     .date-header-cell {
         text-align: center;
@@ -451,6 +632,12 @@
 
     .matrix-cell-code {
         padding: 0.35rem 0.25rem !important;
+        cursor: pointer;
+        transition: background-color var(--transition-speed) ease;
+    }
+
+    .matrix-cell-code:hover {
+        background-color: rgba(59, 130, 246, 0.12) !important;
     }
 
     .btn-excel-export {
@@ -694,6 +881,31 @@
         border-bottom: 1px solid var(--border-color);
     }
 
+    .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .matrix-pagination-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .matrix-pagination-bar .btn-secondary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
     .table-toolbar-title {
         font-size: 1.05rem;
         font-weight: 700;
@@ -811,6 +1023,38 @@
         to { transform: rotate(360deg); }
     }
 
+    /* Progreso por checador dentro del loader de "Todos los Checadores" */
+    .loader-progress-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.4rem;
+        max-width: 700px;
+        width: 100%;
+        margin-top: 0.75rem;
+    }
+
+    .loader-progress-item {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        background-color: var(--bg-page);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.4rem 0.65rem;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .loader-progress-icon {
+        margin-right: 0.3rem;
+    }
+
+    .loader-progress-error {
+        font-size: 0.7rem;
+        color: var(--baja);
+    }
+
     /* Caja de estado vacío */
     .empty-state-card {
         display: flex;
@@ -865,8 +1109,29 @@
         font-weight: 700;
     }
 
-    .pill-retardo { background-color: #fef9c3; color: #ca8a04; }
-    .pill-falta { background-color: #fee2e2; color: #dc2626; }
+    .pill-retardo { background-color: #fef9c3; color: #ca8a04; border: 1px solid rgba(202, 138, 4, 0.2); }
+    .pill-falta { background-color: #fee2e2; color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.2); }
+    .pill-asistencia { background-color: #dcfce7; color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.2); }
+    .pill-justificado { background-color: #e0f2fe; color: #0369a1; border: 1px solid rgba(3, 105, 161, 0.2); }
+
+    /* Chips de resumen del reporte "Sin checar" */
+    .chips-row-reportes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+    }
+
+    .chip-reporte {
+        padding: 0.4rem 0.85rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .chip-falta { background-color: rgba(220, 38, 38, 0.1); color: var(--baja); }
+    .chip-entrada { background-color: rgba(217, 119, 6, 0.1); color: var(--pendiente); }
+    .chip-salida { background-color: rgba(217, 119, 6, 0.1); color: var(--pendiente); }
+    .chip-sinconciliar { background-color: var(--bg-page); border: 1px solid var(--border-color); color: var(--text-muted); }
 
     /* Botones de acción */
     .btn-action-retardo, .btn-action-falta, .btn-action-justificado, .btn-action-delete {
@@ -1086,6 +1351,7 @@
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Conmutar pestañas (Tabs)
     function switchTab(tabId, buttonEl) {
@@ -1098,6 +1364,12 @@
         const url = new URL(window.location.href);
         url.searchParams.set('tab', tabId);
         window.history.replaceState({}, '', url);
+
+        // Reportes de Asistencia solo lee de la BD (nunca llama al checador), se puede cargar solo.
+        if (tabId === 'reportes-tab') {
+            fetchReporteSinChecar();
+            fetchReportePuntualidad();
+        }
     }
 
     // --- PESTAÑA 1: CONCILIADOR DE CHECADOR BIOMÉTRICO ---
@@ -1105,6 +1377,7 @@
     function fetchBiometricData() {
         const fecha = document.getElementById('search-date').value;
         const ip = document.getElementById('biometric-select').value;
+        const sucursal = document.getElementById('sucursal-select').value;
         
         const loader = document.getElementById('biometric-loader');
         const emptyState = document.getElementById('biometric-empty-state');
@@ -1119,10 +1392,12 @@
         loader.classList.remove('hidden');
         tbody.innerHTML = '';
 
+        const sucursalParam = sucursal ? `&sucursal=${encodeURIComponent(sucursal)}` : '';
+
         if (ip === 'all') {
             const select = document.getElementById('biometric-select');
             const devices = [];
-            for (let i = 2; i < select.options.length; i++) { // Skip "all" and first option
+            for (let i = 1; i < select.options.length; i++) { // Skip "all"
                 const opt = select.options[i];
                 const name = opt.text.split(' ')[0];
                 devices.push({ name: name, ip: opt.value });
@@ -1130,19 +1405,34 @@
             
             const loaderText = loader.querySelector('p');
             const loaderSubtext = loader.querySelector('.subtext');
+            const progressEl = document.getElementById('biometric-loader-progress');
             loaderText.textContent = `Consultando y consolidando los ${devices.length} checadores...`;
             loaderSubtext.textContent = 'Esto se realiza en paralelo. Espere unos segundos...';
-            
-            const promises = devices.map(dev => {
-                return fetch(`{{ route('incidencias.biometrico') }}?fecha=${fecha}&ip=${dev.ip}`)
+
+            progressEl.innerHTML = devices.map((dev, i) => `
+                <div class="loader-progress-item" id="loader-progress-${i}">
+                    <span class="loader-progress-icon">⏳</span> ${dev.name}
+                </div>
+            `).join('');
+
+            const promises = devices.map((dev, i) => {
+                return fetch(`{{ route('incidencias.biometrico') }}?fecha=${fecha}&ip=${dev.ip}${sucursalParam}`)
                     .then(response => {
                         if (!response.ok) {
                             return response.json().then(err => { throw new Error(err.error || 'Offline') });
                         }
                         return response.json();
                     })
-                    .then(data => ({ name: dev.name, ip: dev.ip, status: 'ok', data }))
-                    .catch(err => ({ name: dev.name, ip: dev.ip, status: 'error', error: err.message }));
+                    .then(data => {
+                        const item = document.getElementById(`loader-progress-${i}`);
+                        if (item) item.innerHTML = `<span class="loader-progress-icon">✅</span> ${dev.name}`;
+                        return { name: dev.name, ip: dev.ip, status: 'ok', data };
+                    })
+                    .catch(err => {
+                        const item = document.getElementById(`loader-progress-${i}`);
+                        if (item) item.innerHTML = `<span class="loader-progress-icon">❌</span> ${dev.name} <span class="loader-progress-error">(${err.message})</span>`;
+                        return { name: dev.name, ip: dev.ip, status: 'error', error: err.message };
+                    });
             });
             
             Promise.all(promises)
@@ -1150,6 +1440,7 @@
                     loader.classList.add('hidden');
                     loaderText.textContent = 'Conectando al biométrico y conciliando asistencias...';
                     loaderSubtext.textContent = 'Esto puede tomar hasta 4 segundos según el estado de la red.';
+                    progressEl.innerHTML = '';
                     
                     const success = results.filter(r => r.status === 'ok');
                     const failed = results.filter(r => r.status === 'error');
@@ -1178,6 +1469,7 @@
                         `;
                     } else {
                         renderConciliationRows(consolidatedData, fecha);
+                        autoSaveIncidenciasBatch(consolidatedData, fecha);
                     }
                     tableBox.classList.remove('hidden');
                 })
@@ -1185,6 +1477,7 @@
                     loader.classList.add('hidden');
                     loaderText.textContent = 'Conectando al biométrico y conciliando asistencias...';
                     loaderSubtext.textContent = 'Esto puede tomar hasta 4 segundos según el estado de la red.';
+                    progressEl.innerHTML = '';
                     
                     document.getElementById('error-message-text').textContent = error.message;
                     errorAlert.className = 'alert-box-error';
@@ -1194,7 +1487,8 @@
             return;
         }
 
-        fetch(`{{ route('incidencias.biometrico') }}?fecha=${fecha}&ip=${ip}`)
+        document.getElementById('biometric-loader-progress').innerHTML = '';
+        fetch(`{{ route('incidencias.biometrico') }}?fecha=${fecha}&ip=${ip}${sucursalParam}`)
             .then(response => {
                 if (!response.ok) {
                     return response.json().then(err => { throw new Error(err.error || 'Fallo del servidor') });
@@ -1212,6 +1506,7 @@
                     `;
                 } else {
                     renderConciliationRows(data, fecha);
+                    autoSaveIncidenciasBatch(data, fecha);
                 }
                 tableBox.classList.remove('hidden');
             })
@@ -1222,6 +1517,58 @@
                 errorAlert.classList.remove('hidden');
                 emptyState.classList.remove('hidden');
             });
+    }
+
+    window.liveChecadas = window.liveChecadas || {};
+
+    function autoSaveIncidenciasBatch(data, fecha) {
+        if (!data || data.length === 0) return;
+
+        // Guardar en cache JS y actualizar atributos data-* en tiempo real
+        data.forEach(row => {
+            const key = `${row.n_empleado}_${fecha}`;
+            window.liveChecadas[key] = {
+                primera: row.primera_checada,
+                ultima: row.ultima_checada
+            };
+
+            const cells = document.querySelectorAll(`.matrix-cell-code[data-emp="${row.n_empleado}"][data-fecha="${fecha}"]`);
+            cells.forEach(cell => {
+                if (row.primera_checada && row.primera_checada !== '—') {
+                    cell.setAttribute('data-pchecada', row.primera_checada);
+                }
+                if (row.ultima_checada && row.ultima_checada !== '—') {
+                    cell.setAttribute('data-uchecada', row.ultima_checada);
+                }
+            });
+        });
+
+        fetch(`{{ route('incidencias.autoGuardarLote') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                fecha: fecha,
+                registros: data
+            })
+        })
+        .then(response => response.json())
+        .then(res => {
+            if (res.success && res.guardados > 0) {
+                console.log(`Se sincronizaron y guardaron ${res.guardados} incidencias en la BD.`);
+                data.forEach(row => {
+                    if (row.sugiere_incidencia) {
+                        const actionCell = document.getElementById(`action-cell-${row.n_empleado}`);
+                        if (actionCell) {
+                            actionCell.parentNode.innerHTML = `<span class="badge-logged">Registrada (BD)</span>`;
+                        }
+                    }
+                });
+            }
+        })
+        .catch(err => console.error('Error al guardar incidencias por lote:', err));
     }
 
     function consolidateDevicesData(successResults) {
@@ -1580,29 +1927,76 @@
     }
 
     // Filtrar tabla matriz localmente en tiempo real
+    let matrixCurrentPage = 1;
+
     function filterMatrixTable() {
+        matrixCurrentPage = 1;
+        applyMatrixTableView();
+    }
+
+    function sortMatrixTable(columnIndex, esNumerico) {
+        sortTable('matrixGridTable', columnIndex, esNumerico);
+        applyMatrixTableView();
+    }
+
+    function matrixChangePageSize() {
+        matrixCurrentPage = 1;
+        applyMatrixTableView();
+    }
+
+    function matrixChangePage(delta) {
+        matrixCurrentPage += delta;
+        applyMatrixTableView();
+    }
+
+    function applyMatrixTableView() {
         const input = document.getElementById("matrixSearch").value.toLowerCase();
         const table = document.getElementById("matrixGridTable");
-        const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+        const tbody = table.getElementsByTagName("tbody")[0];
+        const allRows = Array.from(tbody.getElementsByTagName("tr"));
 
-        for (let i = 0; i < rows.length; i++) {
-            let cells = rows[i].getElementsByTagName("td");
-            let rowContainsFilter = false;
+        if (allRows.length === 1 && allRows[0].cells[0].classList.contains('no-records-row')) {
+            document.getElementById('matrixPaginationInfo').textContent = 'Sin registros.';
+            document.getElementById('matrixPrevBtn').disabled = true;
+            document.getElementById('matrixNextBtn').disabled = true;
+            return;
+        }
 
-            // Buscar en las celdas principales (N_Emp y Nombre Completo)
+        // Filtrar por búsqueda (N_Emp y Nombre Completo)
+        const matches = allRows.filter(row => {
+            const cells = row.getElementsByTagName("td");
             for (let j = 0; j < 2; j++) {
-                if (cells[j]) {
-                    let cellText = cells[j].textContent || cells[j].innerText;
-                    if (cellText.toLowerCase().includes(input)) {
-                        rowContainsFilter = true;
-                        break;
-                    }
+                if (cells[j] && cells[j].textContent.toLowerCase().includes(input)) {
+                    return true;
                 }
             }
+            return false;
+        });
 
-            if (rows[i].cells[0].classList.contains('no-records-row')) continue;
-            rows[i].style.display = rowContainsFilter ? "" : "none";
+        const pageSizeValue = document.getElementById('matrixPageSize').value;
+        const pageSize = pageSizeValue === 'all' ? matches.length : parseInt(pageSizeValue, 10);
+        const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(matches.length / pageSize)) : 1;
+
+        if (matrixCurrentPage > totalPages) matrixCurrentPage = totalPages;
+        if (matrixCurrentPage < 1) matrixCurrentPage = 1;
+
+        const start = pageSizeValue === 'all' ? 0 : (matrixCurrentPage - 1) * pageSize;
+        const end = pageSizeValue === 'all' ? matches.length : start + pageSize;
+        const visibleSet = new Set(matches.slice(start, end));
+
+        allRows.forEach(row => {
+            row.style.display = visibleSet.has(row) ? "" : "none";
+        });
+
+        const info = document.getElementById('matrixPaginationInfo');
+        if (matches.length === 0) {
+            info.textContent = 'Sin resultados para la búsqueda.';
+        } else {
+            info.textContent = `Mostrando ${start + 1}–${Math.min(end, matches.length)} de ${matches.length} empleados (página ${matrixCurrentPage} de ${totalPages})`;
         }
+
+        document.getElementById('matrixPrevBtn').disabled = matrixCurrentPage <= 1;
+        document.getElementById('matrixNextBtn').disabled = matrixCurrentPage >= totalPages;
     }
 
     // Exportar matriz a Excel
@@ -1611,7 +2005,12 @@
         
         // Clonar la tabla para no modificar la original en pantalla
         const tableClone = table.cloneNode(true);
-        
+
+        // La paginación oculta filas con display:none; el export siempre debe llevar TODO, no solo la página actual.
+        tableClone.querySelectorAll('tr').forEach(row => {
+            row.style.display = '';
+        });
+
         // Quitar las clases 'sticky-col' y otros estilos para que Excel lo interprete plano y limpio
         tableClone.querySelectorAll('.sticky-col').forEach(el => {
             el.style.position = 'static';
@@ -1636,16 +2035,325 @@
         document.body.removeChild(downloadLink);
     }
 
+    // Mostrar modal de detalle de asistencia al hacer clic en celda de la matriz
+    function openMatrixCellModal(cellEl) {
+        const nEmp = cellEl.getAttribute('data-emp');
+        const empName = cellEl.getAttribute('data-name');
+        const sucursal = cellEl.getAttribute('data-sucursal');
+        const horario = cellEl.getAttribute('data-horario');
+        const fechaStr = cellEl.getAttribute('data-fecha');
+        const code = cellEl.getAttribute('data-code');
+        let pChecada = cellEl.getAttribute('data-pchecada');
+        let uChecada = cellEl.getAttribute('data-uchecada');
+
+        const key = `${nEmp}_${fechaStr}`;
+        if (window.liveChecadas && window.liveChecadas[key]) {
+            if (window.liveChecadas[key].primera && window.liveChecadas[key].primera !== '—') {
+                pChecada = window.liveChecadas[key].primera;
+            }
+            if (window.liveChecadas[key].ultima && window.liveChecadas[key].ultima !== '—') {
+                uChecada = window.liveChecadas[key].ultima;
+            }
+        }
+
+        document.getElementById('md-emp-id').textContent = `# EMP: ${nEmp}`;
+        document.getElementById('md-emp-name').textContent = empName;
+        document.getElementById('md-emp-meta').textContent = `Sucursal: ${sucursal}`;
+        document.getElementById('md-horario').textContent = horario;
+        
+        const pChecadaEl = document.getElementById('md-pchecada');
+        const uChecadaEl = document.getElementById('md-uchecada');
+
+        pChecadaEl.textContent = (pChecada && pChecada !== 'null' && pChecada !== 'undefined' && pChecada !== '') ? pChecada : '—';
+        uChecadaEl.textContent = (uChecada && uChecada !== 'null' && uChecada !== 'undefined' && uChecada !== '') ? uChecada : '—';
+
+        const parts = fechaStr.split('-');
+        const formattedDate = (parts.length === 3) ? `${parts[2]}/${parts[1]}/${parts[0]}` : fechaStr;
+        document.getElementById('md-fecha').textContent = formattedDate;
+
+        const badgeContainer = document.getElementById('md-badge-container');
+        const obsEl = document.getElementById('md-obs');
+
+        let badgeHtml = '';
+        let obsText = '';
+
+        switch (code) {
+            case 'A':
+                badgeHtml = `<span class="status-badge badge-ontime">A tiempo / Asistencia</span>`;
+                obsText = `El empleado registró su asistencia en el checador biométrico dentro del horario establecido (o cumplió su jornada sin incidencias registradas).`;
+                break;
+            case 'R':
+                badgeHtml = `<span class="status-badge badge-retardo">Retardo</span>`;
+                obsText = `El empleado registró su entrada posterior al horario límite con tolerancia de 10 minutos. Incidencia registrada en el sistema.`;
+                break;
+            case 'F':
+                badgeHtml = `<span class="status-badge badge-falta">Falta</span>`;
+                obsText = `No se registraron checadas de entrada ni justificación autorizada para esta jornada laboral.`;
+                break;
+            case 'J':
+                badgeHtml = `<span class="status-badge badge-ontime">Justificado</span>`;
+                obsText = `La incidencia correspondiente a esta fecha fue justificada formalmente por Recursos Humanos.`;
+                break;
+            case 'V':
+                badgeHtml = `<span class="status-badge badge-vacation">Vacaciones</span>`;
+                obsText = `El empleado cuenta con vacaciones autorizadas programadas para esta fecha.`;
+                break;
+            case 'I':
+                badgeHtml = `<span class="status-badge badge-incapacity">Incapacidad</span>`;
+                obsText = `El empleado cuenta con incapacidad médica oficial registrada para esta fecha.`;
+                break;
+            case 'D':
+                badgeHtml = `<span class="status-badge badge-off">Día de descanso</span>`;
+                obsText = `Día no laborable / Fin de semana según la programación de la jornada.`;
+                break;
+            default:
+                badgeHtml = `<span class="status-badge badge-off">Sin registro</span>`;
+                obsText = `Sin marcas de asistencia registradas aún para esta fecha.`;
+                break;
+        }
+
+        badgeContainer.innerHTML = badgeHtml;
+        obsEl.textContent = obsText;
+
+        // Cargar justificación en la sección de solo lectura
+        const justificacion = cellEl.getAttribute('data-justificacion') || '';
+        const viewSection = document.getElementById('md-justification-view-section');
+        const viewText = document.getElementById('md-justification-view-text');
+        if (viewSection && viewText) {
+            if (justificacion) {
+                viewText.textContent = justificacion;
+                viewSection.style.display = 'block';
+            } else {
+                viewSection.style.display = 'none';
+            }
+        }
+
+        // Guardar referencia en variable global para la edición
+        window.currentCellData = {
+            nEmp: nEmp,
+            empName: empName,
+            fechaStr: fechaStr,
+            code: code,
+            justificacion: justificacion
+        };
+
+        document.getElementById('matrixDetailModal').classList.remove('hidden');
+
+        // Búsqueda de respaldo en tiempo real si falta la marca de entrada
+        if ((!pChecada || pChecada === '—') && (code === 'A' || code === 'R')) {
+            pChecadaEl.textContent = 'Buscando...';
+            fetch(`{{ route('incidencias.biometrico') }}?fecha=${fechaStr}&ip=all`)
+                .then(res => res.json())
+                .then(list => {
+                    if (Array.isArray(list)) {
+                        const found = list.find(item => String(item.n_empleado) === String(nEmp));
+                        if (found && found.primera_checada && found.primera_checada !== '—') {
+                            pChecadaEl.textContent = found.primera_checada;
+                            uChecadaEl.textContent = found.ultima_checada || 'Sin salida';
+                            cellEl.setAttribute('data-pchecada', found.primera_checada);
+                            cellEl.setAttribute('data-uchecada', found.ultima_checada || 'Sin salida');
+                            
+                            window.liveChecadas[key] = {
+                                primera: found.primera_checada,
+                                ultima: found.ultima_checada || 'Sin salida'
+                            };
+                        } else {
+                            if (pChecadaEl.textContent === 'Buscando...') pChecadaEl.textContent = '—';
+                        }
+                    } else {
+                        if (pChecadaEl.textContent === 'Buscando...') pChecadaEl.textContent = '—';
+                    }
+                })
+                .catch(() => {
+                    if (pChecadaEl.textContent === 'Buscando...') pChecadaEl.textContent = '—';
+                });
+        }
+    }
+
+    function closeMatrixDetailModal() {
+        document.getElementById('matrixDetailModal').classList.add('hidden');
+    }
+
+    function openMatrixEditFromDetail() {
+        closeMatrixDetailModal();
+
+        const data = window.currentCellData;
+        if (!data) return;
+
+        // Rellenar modal de edición
+        const nameEl = document.getElementById('me-emp-name');
+        if (nameEl) nameEl.textContent = data.empName;
+        
+        const metaEl = document.getElementById('me-emp-meta');
+        if (metaEl) {
+            const parts = data.fechaStr.split('-');
+            const formattedDate = (parts.length === 3) ? `${parts[2]}/${parts[1]}/${parts[0]}` : data.fechaStr;
+            metaEl.textContent = `Fecha: ${formattedDate} | # EMP: ${data.nEmp}`;
+        }
+
+        const empInput = document.getElementById('me-edit-emp');
+        if (empInput) empInput.value = data.nEmp;
+        
+        const fechaInput = document.getElementById('me-edit-fecha');
+        if (fechaInput) fechaInput.value = data.fechaStr;
+
+        const editTipo = document.getElementById('me-edit-tipo');
+        if (editTipo) {
+            let selectValue = 'Asistencia';
+            if (data.code === 'R') selectValue = 'Retardo';
+            else if (data.code === 'F') selectValue = 'Falta';
+            else if (data.code === 'J') selectValue = 'Justificado';
+            editTipo.value = selectValue;
+        }
+
+        const editJust = document.getElementById('me-edit-justificacion-text');
+        if (editJust) {
+            editJust.value = data.justificacion;
+        }
+
+        // Mostrar modal de edición
+        const editModal = document.getElementById('matrixEditModal');
+        if (editModal) editModal.classList.remove('hidden');
+    }
+
+    function closeMatrixEditModal() {
+        const editModal = document.getElementById('matrixEditModal');
+        if (editModal) editModal.classList.add('hidden');
+    }
+
+    function saveMatrixJustification(btnEl) {
+        const nEmpleado = document.getElementById('me-edit-emp').value;
+        const fecha = document.getElementById('me-edit-fecha').value;
+        const tipoIncidencia = document.getElementById('me-edit-tipo').value;
+        const justificacion = document.getElementById('me-edit-justificacion-text').value.trim();
+
+        btnEl.disabled = true;
+        const originalText = btnEl.textContent;
+        btnEl.textContent = 'Guardando...';
+
+        fetch(`{{ route('incidencias.guardar') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                n_empleado: nEmpleado,
+                fecha: fecha,
+                tipo_incidencia: tipoIncidencia,
+                justificacion: justificacion
+            })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error al guardar');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                closeMatrixEditModal();
+                // Recargar la página conservando los filtros actuales de la URL
+                location.reload();
+            } else {
+                alert('No se pudo guardar la justificación.');
+                btnEl.disabled = false;
+                btnEl.textContent = originalText;
+            }
+        })
+        .catch(error => {
+            console.error(error);
+            alert('Error de conexión al guardar.');
+            btnEl.disabled = false;
+            btnEl.textContent = originalText;
+        });
+    }
+
     // Inicializar Tab activa por URL al cargar la página
     document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
-        const tabParam = urlParams.get('tab');
-        if (tabParam) {
-            const btn = document.querySelector(`.tab-btn[onclick*="${tabParam}"]`);
-            if (btn) {
-                btn.click();
+        const tabParam = urlParams.get('tab') || 'matriz-tab';
+        const btn = document.querySelector(`.tab-btn[onclick*="${tabParam}"]`);
+        if (btn) {
+            btn.click();
+        }
+        applyMatrixTableView();
+    });
+
+    // Función de ordenación genérica para cualquier tabla
+    function sortTable(tableId, columnIndex, esNumerico, esFecha = false) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        // Ignorar fila vacía o de carga/sin registros
+        if (rows.length === 1 && (rows[0].querySelector('.no-records-row') || rows[0].textContent.includes('Consultando...') || rows[0].textContent.includes('cargando...'))) {
+            return;
+        }
+
+        const currentSortedCol = table.getAttribute('data-sort-col');
+        let asc = table.getAttribute('data-sort-dir') !== 'asc';
+        
+        if (currentSortedCol !== String(columnIndex)) {
+            asc = true;
+        }
+
+        rows.sort((a, b) => {
+            if (a.cells.length <= columnIndex || b.cells.length <= columnIndex) return 0;
+            const cellA = a.cells[columnIndex].textContent.trim();
+            const cellB = b.cells[columnIndex].textContent.trim();
+
+            if (esNumerico) {
+                const cleanA = cellA.replace(/[^\d.-]/g, '');
+                const cleanB = cellB.replace(/[^\d.-]/g, '');
+                const numA = parseFloat(cleanA);
+                const numB = parseFloat(cleanB);
+                
+                const valA = isNaN(numA) ? -Infinity : numA;
+                const valB = isNaN(numB) ? -Infinity : numB;
+                return asc ? valA - valB : valB - valA;
+            } else if (esFecha) {
+                const parseDate = (str) => {
+                    if (!str || str === '—' || str === '-') return new Date(0);
+                    if (str.includes('/')) {
+                        const parts = str.split(' ')[0].split('/');
+                        if (parts.length === 3) {
+                            const timePart = str.split(' ')[1] || '00:00';
+                            const timeParts = timePart.split(':');
+                            return new Date(parts[2], parts[1] - 1, parts[0], timeParts[0] || 0, timeParts[1] || 0);
+                        }
+                    }
+                    return new Date(str);
+                };
+                const dateA = parseDate(cellA);
+                const dateB = parseDate(cellB);
+                return asc ? dateA - dateB : dateB - dateA;
+            } else {
+                return asc ? cellA.localeCompare(cellB, 'es', { sensitivity: 'base' }) : cellB.localeCompare(cellA, 'es', { sensitivity: 'base' });
+            }
+        });
+
+        // Limpiar iconos anteriores en los headers de esta tabla
+        const headers = table.querySelectorAll('thead th');
+        headers.forEach(h => {
+            const icon = h.querySelector('.sort-icon');
+            if (icon) icon.textContent = '⇅';
+        });
+
+        // Actualizar el icono de la columna ordenada
+        const activeHeader = headers[columnIndex];
+        if (activeHeader) {
+            const activeIcon = activeHeader.querySelector('.sort-icon');
+            if (activeIcon) {
+                activeIcon.textContent = asc ? ' ▲' : ' ▼';
             }
         }
-    });
+
+        // Reinsertar las filas en el orden correcto
+        rows.forEach(row => tbody.appendChild(row));
+
+        // Guardar estado del ordenamiento
+        table.setAttribute('data-sort-dir', asc ? 'asc' : 'desc');
+        table.setAttribute('data-sort-col', columnIndex);
+    }
 </script>
 @endpush

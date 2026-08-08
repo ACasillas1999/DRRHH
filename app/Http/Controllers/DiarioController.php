@@ -362,14 +362,15 @@ class DiarioController extends Controller
     {
         $start = $request->input('start');
         $end = $request->input('end');
+        $nEmpleado = $request->input('n_empleado');
 
         if (!$start || !$end) {
             $start = Carbon::now()->startOfMonth()->toDateString();
             $end = Carbon::now()->endOfMonth()->toDateString();
         }
 
-        // Obtener eventos usando nuestra función existente
-        $rawEvents = $this->getEventsForRange($start, $end);
+        // Obtener eventos usando nuestra función existente con filtro opcional de empleado
+        $rawEvents = $this->getEventsForRange($start, $end, $nEmpleado);
 
         $fcEvents = [];
 
@@ -403,6 +404,22 @@ class DiarioController extends Controller
                     $title = "🏥 Incap: " . $event['nombre'];
                     $color = '#a855f7'; // Purple
                     break;
+                case 'Falta':
+                    $title = "❌ Falta: " . $event['nombre'];
+                    $color = '#ef4444'; // Red
+                    break;
+                case 'Retardo':
+                    $title = "⏳ Retardo: " . $event['nombre'];
+                    $color = '#f97316'; // Orange
+                    break;
+                case 'Asistencia':
+                    $title = "✔️ Asistencia: " . $event['nombre'];
+                    $color = '#10b981'; // Emerald Green
+                    break;
+                default:
+                    $title = "⚠️ " . $event['tipo'] . ": " . $event['nombre'];
+                    $color = '#64748b'; // Slate
+                    break;
             }
 
             // Separar fechas en caso de rangos
@@ -428,7 +445,8 @@ class DiarioController extends Controller
                 'allDay' => true,
                 'extendedProps' => [
                     'tipo' => $event['tipo'],
-                    'n_empleado' => $event['n_empleado']
+                    'n_empleado' => $event['n_empleado'] ?? null,
+                    'detalles' => $event['detalles'] ?? ''
                 ]
             ];
         }
@@ -462,7 +480,7 @@ class DiarioController extends Controller
     /**
      * Método auxiliar para buscar todos los eventos dentro de un rango de fechas
      */
-    private function getEventsForRange($startDate, $endDate)
+    private function getEventsForRange($startDate, $endDate, $nEmpleado = null)
     {
         $events = [];
 
@@ -483,11 +501,16 @@ class DiarioController extends Controller
         }
 
         // Obtener todos los empleados activos para mapear cumpleaños y aniversarios en PHP
-        $activeEmployees = Personal::join('laborales_empleado', 'personales.N_Empleado', '=', 'laborales_empleado.N_Empleado')
+        $activeEmployeesQuery = Personal::join('laborales_empleado', 'personales.N_Empleado', '=', 'laborales_empleado.N_Empleado')
             ->join('puestos', 'laborales_empleado.ID_Puesto', '=', 'puestos.ID')
             ->leftJoin('fechas_laborales', 'personales.N_Empleado', '=', 'fechas_laborales.N_Empleado')
-            ->where('laborales_empleado.Estatus', 'ACTIVO')
-            ->select([
+            ->where('laborales_empleado.Estatus', 'ACTIVO');
+
+        if ($nEmpleado) {
+            $activeEmployeesQuery->where('personales.N_Empleado', $nEmpleado);
+        }
+
+        $activeEmployees = $activeEmployeesQuery->select([
                 'personales.N_Empleado', 'personales.Nombre_Completo', 'personales.Fecha_Nacimiento',
                 'laborales_empleado.Fisica', 'puestos.Nombre_Puesto', 'fechas_laborales.Fecha_Ingreso'
             ])
@@ -534,7 +557,7 @@ class DiarioController extends Controller
         }
 
         // Obtener vacaciones aprobadas en el rango
-        $vacations = Vacacion::join('laborales_empleado', 'vacaciones.N_Empleado', '=', 'laborales_empleado.N_Empleado')
+        $vacationsQuery = Vacacion::join('laborales_empleado', 'vacaciones.N_Empleado', '=', 'laborales_empleado.N_Empleado')
             ->join('personales', 'vacaciones.N_Empleado', '=', 'personales.N_Empleado')
             ->join('puestos', 'laborales_empleado.ID_Puesto', '=', 'puestos.ID')
             ->leftJoin('fechas_laborales', 'vacaciones.N_Empleado', '=', 'fechas_laborales.N_Empleado')
@@ -547,8 +570,13 @@ class DiarioController extends Controller
                       $sq->where('vacaciones.Fecha_Inicial', '<=', $startDate)
                          ->where('vacaciones.Fecha_Final', '>=', $endDate);
                   });
-            })
-            ->select([
+            });
+
+        if ($nEmpleado) {
+            $vacationsQuery->where('vacaciones.N_Empleado', $nEmpleado);
+        }
+
+        $vacations = $vacationsQuery->select([
                 'vacaciones.*', 'personales.Nombre_Completo', 'laborales_empleado.Fisica', 
                 'puestos.Nombre_Puesto', 'fechas_laborales.Fecha_Ingreso'
             ])
@@ -568,14 +596,19 @@ class DiarioController extends Controller
         }
 
         // Obtener contratos que vencen en el rango (Determinado)
-        $contratos = Contrato::join('personales', 'contratos.N_Empleado', '=', 'personales.N_Empleado')
+        $contratosQuery = Contrato::join('personales', 'contratos.N_Empleado', '=', 'personales.N_Empleado')
             ->join('laborales_empleado', 'contratos.N_Empleado', '=', 'laborales_empleado.N_Empleado')
             ->join('puestos', 'laborales_empleado.ID_Puesto', '=', 'puestos.ID')
             ->leftJoin('fechas_laborales', 'contratos.N_Empleado', '=', 'fechas_laborales.N_Empleado')
             ->where('contratos.Tipo_de_Contrato', 'Determinado')
             ->where('laborales_empleado.Estatus', 'ACTIVO')
-            ->whereBetween('contratos.F_Vence', [$startDate, $endDate])
-            ->select([
+            ->whereBetween('contratos.F_Vence', [$startDate, $endDate]);
+
+        if ($nEmpleado) {
+            $contratosQuery->where('contratos.N_Empleado', $nEmpleado);
+        }
+
+        $contratos = $contratosQuery->select([
                 'contratos.*', 'personales.Nombre_Completo', 'laborales_empleado.Fisica', 
                 'puestos.Nombre_Puesto', 'fechas_laborales.Fecha_Ingreso'
             ])
@@ -595,14 +628,19 @@ class DiarioController extends Controller
         }
 
         // Obtener evaluaciones en el rango (Evaluacion)
-        $evaluations = Contrato::join('personales', 'contratos.N_Empleado', '=', 'personales.N_Empleado')
+        $evaluationsQuery = Contrato::join('personales', 'contratos.N_Empleado', '=', 'personales.N_Empleado')
             ->join('laborales_empleado', 'contratos.N_Empleado', '=', 'laborales_empleado.N_Empleado')
             ->join('puestos', 'laborales_empleado.ID_Puesto', '=', 'puestos.ID')
             ->leftJoin('fechas_laborales', 'contratos.N_Empleado', '=', 'fechas_laborales.N_Empleado')
             ->where('contratos.Tipo_de_Contrato', 'Evaluacion')
             ->where('laborales_empleado.Estatus', 'ACTIVO')
-            ->whereBetween('contratos.F_Vence', [$startDate, $endDate])
-            ->select([
+            ->whereBetween('contratos.F_Vence', [$startDate, $endDate]);
+
+        if ($nEmpleado) {
+            $evaluationsQuery->where('contratos.N_Empleado', $nEmpleado);
+        }
+
+        $evaluations = $evaluationsQuery->select([
                 'contratos.*', 'personales.Nombre_Completo', 'laborales_empleado.Fisica', 
                 'puestos.Nombre_Puesto', 'fechas_laborales.Fecha_Ingreso'
             ])
@@ -634,7 +672,7 @@ class DiarioController extends Controller
         }
 
         // Obtener incapacidades en el rango
-        $incapacities = Incapacidad::join('laborales_empleado', 'incapacidades.N_Empleado', '=', 'laborales_empleado.N_Empleado')
+        $incapacitiesQuery = Incapacidad::join('laborales_empleado', 'incapacidades.N_Empleado', '=', 'laborales_empleado.N_Empleado')
             ->join('personales', 'incapacidades.N_Empleado', '=', 'personales.N_Empleado')
             ->join('puestos', 'laborales_empleado.ID_Puesto', '=', 'puestos.ID')
             ->leftJoin('fechas_laborales', 'incapacidades.N_Empleado', '=', 'fechas_laborales.N_Empleado')
@@ -646,8 +684,13 @@ class DiarioController extends Controller
                       $sq->where('incapacidades.Fecha_Inicio', '<=', $startDate)
                          ->where('incapacidades.Fecha_Fin', '>=', $endDate);
                   });
-            })
-            ->select([
+            });
+
+        if ($nEmpleado) {
+            $incapacitiesQuery->where('incapacidades.N_Empleado', $nEmpleado);
+        }
+
+        $incapacities = $incapacitiesQuery->select([
                 'incapacidades.*', 'personales.Nombre_Completo', 'laborales_empleado.Fisica', 
                 'puestos.Nombre_Puesto', 'fechas_laborales.Fecha_Ingreso'
             ])
@@ -663,6 +706,40 @@ class DiarioController extends Controller
                 'fisica' => $inc->Fisica,
                 'puesto' => $inc->Nombre_Puesto,
                 'detalles' => "Descripción: " . $inc->Descripcion . " | Días: " . $inc->Total_Dias
+            ];
+        }
+
+        // Obtener incidencias activas en el rango (Retardo, Falta, Asistencia, etc.)
+        $incidenciasQuery = \App\Models\Incidencia::join('personales', 'incidencias.N_Empleado', '=', 'personales.N_Empleado')
+            ->join('laborales_empleado', 'incidencias.N_Empleado', '=', 'laborales_empleado.N_Empleado')
+            ->join('puestos', 'laborales_empleado.ID_Puesto', '=', 'puestos.ID')
+            ->leftJoin('fechas_laborales', 'incidencias.N_Empleado', '=', 'fechas_laborales.N_Empleado')
+            ->where('incidencias.Incidencia_Activa', 1)
+            ->whereBetween('incidencias.Fecha', [$startDate, $endDate]);
+
+        if ($nEmpleado) {
+            $incidenciasQuery->where('incidencias.N_Empleado', $nEmpleado);
+        }
+
+        $incidencias = $incidenciasQuery->select([
+                'incidencias.*', 'personales.Nombre_Completo', 'laborales_empleado.Fisica', 
+                'puestos.Nombre_Puesto', 'fechas_laborales.Fecha_Ingreso'
+            ])
+            ->get();
+
+        foreach ($incidencias as $inc) {
+            $events[] = [
+                'tipo' => $inc->Tipo_Incidencia,
+                'nombre' => $inc->Nombre_Completo,
+                'n_empleado' => $inc->N_Empleado,
+                'fecha_evento' => $inc->Fecha,
+                'fecha_ingreso' => $inc->Fecha_Ingreso,
+                'fisica' => $inc->Fisica,
+                'puesto' => $inc->Nombre_Puesto,
+                'detalles' => "Incidencia: " . $inc->Tipo_Incidencia . 
+                              " | Primera Checada: " . ($inc->Primera_Checada ?: '—') . 
+                              " | Última Checada: " . ($inc->Ultima_Checada ?: '—') . 
+                              ($inc->justificacion ? " | Justificación: " . $inc->justificacion : "")
             ];
         }
 

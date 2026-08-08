@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contrato;
+use App\Models\DocumentoEmpleado;
+use App\Models\DocumentoLaboral;
 use App\Models\DocumentoGenerado;
 use App\Models\FechaLaboral;
 use App\Models\LaboralEmpleado;
@@ -160,10 +162,20 @@ class EmpleadoDocumentoController extends Controller
         return $this->descargar($archivo);
     }
 
-    public function cartaOferta(string $n_empleado)
+    public function cartaOferta(Request $request, string $n_empleado)
     {
         $datos = $this->datosBase($n_empleado);
-        $archivo = $this->documentos->generar('carta_oferta.docx', $this->tagsComunes($datos), "Carta_Oferta_{$n_empleado}.docx");
+        $tags = $this->tagsComunes($datos);
+
+        // Permitir sobrescribir los valores financieros desde el request
+        $inputs = $request->only(['Sueldo', 'Sueldo_Neto', 'Efectivo', 'Hora_Comida', 'Comision', 'KPI']);
+        foreach ($inputs as $key => $val) {
+            if ($val !== null && $val !== '') {
+                $tags[$key] = $val;
+            }
+        }
+
+        $archivo = $this->documentos->generar('carta_oferta.docx', $tags, "Carta_Oferta_{$n_empleado}.docx");
 
         return $this->descargar($archivo);
     }
@@ -260,5 +272,47 @@ class EmpleadoDocumentoController extends Controller
         ]);
 
         return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento subido correctamente.');
+    }
+
+    public function subirPersonal(Request $request, string $n_empleado): RedirectResponse
+    {
+        $request->validate([
+            'documento_id' => ['required', 'integer'],
+            'documento' => ['required', 'file', 'max:10240'],
+        ]);
+
+        $doc = DocumentoEmpleado::where('N_Empleado', $n_empleado)->where('ID', $request->input('documento_id'))->firstOrFail();
+
+        $archivo = $request->file('documento');
+        $nombreArchivo = $n_empleado . '_pers_' . \Illuminate\Support\Str::slug($doc->Tipo_Documento) . '_' . time() . '.' . $archivo->getClientOriginalExtension();
+        $archivo->move(public_path('uploads/documentos_empleado'), $nombreArchivo);
+
+        $doc->update([
+            'Ruta_Documento' => '/uploads/documentos_empleado/' . $nombreArchivo,
+            'Fecha_Subida' => now(),
+        ]);
+
+        return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento personal ' . $doc->Tipo_Documento . ' subido correctamente.');
+    }
+
+    public function subirLaboral(Request $request, string $n_empleado): RedirectResponse
+    {
+        $request->validate([
+            'documento_id' => ['required', 'integer'],
+            'documento' => ['required', 'file', 'max:10240'],
+        ]);
+
+        $doc = DocumentoLaboral::where('N_Empleado', $n_empleado)->where('ID', $request->input('documento_id'))->firstOrFail();
+
+        $archivo = $request->file('documento');
+        $nombreArchivo = $n_empleado . '_lab_' . \Illuminate\Support\Str::slug($doc->Tipo_Documento) . '_' . time() . '.' . $archivo->getClientOriginalExtension();
+        $archivo->move(public_path('uploads/documentos_laborales'), $nombreArchivo);
+
+        $doc->update([
+            'Ruta_Documento' => '/uploads/documentos_laborales/' . $nombreArchivo,
+            'Fecha_Subida' => now(),
+        ]);
+
+        return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento laboral ' . $doc->Tipo_Documento . ' subido correctamente.');
     }
 }

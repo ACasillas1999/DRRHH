@@ -59,7 +59,6 @@
                         </select>
                     </div>
                     <div class="campo"><label>Fecha Nacimiento</label><input type="date" name="Fecha_Nacimiento" value="{{ old('Fecha_Nacimiento') }}"></div>
-                    <div class="campo"><label>Edad</label><input type="number" name="Edad" value="{{ old('Edad') }}"></div>
                     <div class="campo"><label>Ciudad</label><input type="text" name="Ciudad" value="{{ old('Ciudad') }}"></div>
                     <div class="campo"><label>Estado</label><input type="text" name="Estado" value="{{ old('Estado') }}"></div>
                     <div class="campo"><label>Domicilio</label><input type="text" name="Domicilio" value="{{ old('Domicilio') }}"></div>

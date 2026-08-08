@@ -20,14 +20,20 @@ use App\Http\Controllers\EstimadoController;
 use App\Http\Controllers\DiarioController;
 use App\Http\Controllers\IncidenciaController;
 use App\Http\Controllers\ChecadorController;
+use App\Http\Controllers\HistorialController;
+use App\Http\Controllers\ReclutamientoController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ChecadorWebhookController;
 
 use App\Models\LaboralEmpleado;
 
 Route::get('/login', [LoginController::class, 'showForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware(['guest', 'throttle:5,1']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Recibe eventos push de los checadores en modo HTTP Listening (sin auth, el dispositivo no tiene sesión)
+Route::post('/webhooks/checador', [ChecadorWebhookController::class, 'receive']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
@@ -41,6 +47,8 @@ Route::middleware('auth')->group(function () {
         $empleados = Personal::has('laboral')->with('laboral')->take(5)->get();
         return view('test', compact('empleados'));
     });
+
+    Route::get('/notificaciones', [EmpleadoController::class, 'notificaciones'])->name('notificaciones');
 
     Route::middleware('role:Admin,RH,Nominas')->group(function () {
         Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
@@ -63,6 +71,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/empleados/{n_empleado}/contratos/indeterminado', [EmpleadoDocumentoController::class, 'contratoIndeterminado'])->name('empleados.contratos.indeterminado');
         Route::get('/empleados/{n_empleado}/contratos/convenio', [EmpleadoDocumentoController::class, 'convenio'])->name('empleados.contratos.convenio');
         Route::post('/empleados/{n_empleado}/documentos', [EmpleadoDocumentoController::class, 'storeUpload'])->name('empleados.documentos.store');
+        Route::post('/empleados/{n_empleado}/documentos-personales', [EmpleadoDocumentoController::class, 'subirPersonal'])->name('empleados.documentos.subirPersonal');
+        Route::post('/empleados/{n_empleado}/documentos-laborales', [EmpleadoDocumentoController::class, 'subirLaboral'])->name('empleados.documentos.subirLaboral');
 
         Route::get('/altas-imss', [AltaBajaImssController::class, 'index'])->name('altas-imss.index');
         Route::post('/altas-imss/{n_empleado}/fecha-alta', [AltaBajaImssController::class, 'actualizarFechaAlta'])->name('altas-imss.fechaAlta');
@@ -93,14 +103,32 @@ Route::middleware('auth')->group(function () {
 
         // Incidencias
         Route::get('/incidencias', [IncidenciaController::class, 'index'])->name('incidencias.index');
+        Route::get('/incidencias/reportes', [IncidenciaController::class, 'reportesVista'])->name('incidencias.reportes');
         Route::get('/incidencias/biometrico', [IncidenciaController::class, 'consultarBiometrico'])->name('incidencias.biometrico');
         Route::post('/incidencias/guardar', [IncidenciaController::class, 'guardarIncidencia'])->name('incidencias.guardar');
+        Route::post('/incidencias/auto-guardar-lote', [IncidenciaController::class, 'autoGuardarLote'])->name('incidencias.autoGuardarLote');
         Route::post('/incidencias/{id}/desactivar', [IncidenciaController::class, 'desactivarIncidencia'])->name('incidencias.desactivar');
+        Route::get('/incidencias/reporte-sin-checar', [IncidenciaController::class, 'reporteSinChecar'])->name('incidencias.reporteSinChecar');
+        Route::get('/incidencias/reporte-puntualidad', [IncidenciaController::class, 'reportePuntualidad'])->name('incidencias.reportePuntualidad');
 
         // Checadores CRUD & Lector
         Route::resource('checadores', ChecadorController::class)->except(['create', 'show', 'edit']);
         Route::get('/checadores-lector', [ChecadorController::class, 'lector'])->name('checadores.lector');
         Route::get('/checadores-lector/datos', [ChecadorController::class, 'leerEventosRaw'])->name('checadores.lector.datos');
+        Route::post('/checadores/{id}/push/activar', [ChecadorController::class, 'activarPush'])->name('checadores.push.activar');
+        Route::post('/checadores/{id}/push/desactivar', [ChecadorController::class, 'desactivarPush'])->name('checadores.push.desactivar');
+        Route::post('/checadores-push/activar-todos', [ChecadorController::class, 'activarPushTodos'])->name('checadores.push.activarTodos');
+        Route::post('/checadores-push/desactivar-todos', [ChecadorController::class, 'desactivarPushTodos'])->name('checadores.push.desactivarTodos');
+        Route::get('/checadores-push/actividad', [ChecadorWebhookController::class, 'actividadReciente'])->name('checadores.push.actividad');
+
+        // Reclutamiento
+        Route::get('/reclutamiento', [ReclutamientoController::class, 'index'])->name('reclutamiento.index');
+        Route::post('/reclutamiento', [ReclutamientoController::class, 'store'])->name('reclutamiento.store');
+        Route::post('/reclutamiento/{id}', [ReclutamientoController::class, 'update'])->name('reclutamiento.update');
+        Route::get('/reclutamiento/{id}/historial', [ReclutamientoController::class, 'historial'])->name('reclutamiento.historial');
+
+        // Historial de Cambios
+        Route::get('/historial', [HistorialController::class, 'index'])->name('historial.index');
     });
 
     Route::middleware('role:Admin')->group(function () {

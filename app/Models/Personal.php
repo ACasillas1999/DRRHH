@@ -20,6 +20,25 @@ class Personal extends Model
     // Permitir asignación masiva de campos
     protected $guarded = [];
 
+    // Calcular la edad automáticamente antes de guardar en base de datos
+    protected static function booted(): void
+    {
+        static::saving(function (self $personal) {
+            if ($personal->Fecha_Nacimiento) {
+                $personal->Edad = \Illuminate\Support\Carbon::parse($personal->Fecha_Nacimiento)->age;
+            }
+        });
+    }
+
+    // Obtener la edad calculada dinámicamente en tiempo real
+    public function getEdadAttribute($value): ?int
+    {
+        if ($this->Fecha_Nacimiento) {
+            return \Illuminate\Support\Carbon::parse($this->Fecha_Nacimiento)->age;
+        }
+        return $value ? (int)$value : null;
+    }
+
     /**
      * Relación uno a uno con la información laboral
      */

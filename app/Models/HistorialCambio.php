@@ -16,4 +16,9 @@ class HistorialCambio extends Model
     {
         return $this->belongsTo(Personal::class, 'N_Empleado', 'N_Empleado');
     }
+
+    public function usuario(): BelongsTo
+    {
+        return $this->belongsTo(Usuario::class, 'Usuario_ID', 'ID');
+    }
 }

@@ -27,7 +27,6 @@ class EmpleadoPersonalesController extends Controller
             'RFC' => ['nullable', 'string', 'max:50'],
             'Sexo' => ['nullable', 'string', 'max:20'],
             'Fecha_Nacimiento' => ['nullable', 'date'],
-            'Edad' => ['nullable', 'integer'],
             'Ciudad' => ['nullable', 'string', 'max:100'],
             'Estado' => ['nullable', 'string', 'max:100'],
             'Domicilio' => ['nullable', 'string', 'max:255'],

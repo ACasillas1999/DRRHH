@@ -9,6 +9,9 @@ use Carbon\Carbon;
 
 class ChecadorController extends Controller
 {
+    // Códigos de evento "acceso concedido" (0x1), "tarjeta exitosa" (0x5), "rostro reconocido" (0x4b)
+    private const CODIGOS_CHECADA_EXITOSA = '0x1,0x5,0x4b';
+
     /**
      * CRUD: Listado de checadores
      */
@@ -135,5 +138,160 @@ class ChecadorController extends Controller
                 'error' => "No se pudo conectar al checador en la IP {$checador->ip}. Verifique que el dispositivo esté encendido y conectado a la red local."
             ], 500);
         }
+    }
+
+    /**
+     * PUSH: Activa el envío de eventos en tiempo real (HTTP Listening) de un checador
+     */
+    public function activarPush($id)
+    {
+        $checador = Checador::findOrFail($id);
+        $resultado = $this->configurarPushEnDispositivo($checador, true);
+
+        if ($resultado['ok']) {
+            $checador->update(['push_habilitado' => true]);
+
+            return redirect()->route('checadores.index')->with('success', "Push en tiempo real activado en {$checador->nombre}.");
+        }
+
+        return redirect()->route('checadores.index')->with('error', "No se pudo activar el push en {$checador->nombre}: {$resultado['error']}");
+    }
+
+    /**
+     * PUSH: Desactiva el envío de eventos en tiempo real de un checador
+     */
+    public function desactivarPush($id)
+    {
+        $checador = Checador::findOrFail($id);
+        $resultado = $this->configurarPushEnDispositivo($checador, false);
+
+        if ($resultado['ok']) {
+            $checador->update(['push_habilitado' => false]);
+
+            return redirect()->route('checadores.index')->with('success', "Push en tiempo real desactivado en {$checador->nombre}.");
+        }
+
+        return redirect()->route('checadores.index')->with('error', "No se pudo desactivar el push en {$checador->nombre}: {$resultado['error']}");
+    }
+
+    /**
+     * PUSH: Activa el push en todos los checadores activos
+     */
+    public function activarPushTodos()
+    {
+        return $this->aplicarPushATodos(true);
+    }
+
+    /**
+     * PUSH: Desactiva el push en todos los checadores
+     */
+    public function desactivarPushTodos()
+    {
+        return $this->aplicarPushATodos(false);
+    }
+
+    private function aplicarPushATodos(bool $activar)
+    {
+        $checadores = Checador::where('activo', 1)->get();
+        $exitosos = [];
+        $fallidos = [];
+
+        foreach ($checadores as $checador) {
+            $resultado = $this->configurarPushEnDispositivo($checador, $activar);
+            if ($resultado['ok']) {
+                $checador->update(['push_habilitado' => $activar]);
+                $exitosos[] = $checador->nombre;
+            } else {
+                $fallidos[] = "{$checador->nombre} ({$resultado['error']})";
+            }
+        }
+
+        $accion = $activar ? 'activado' : 'desactivado';
+        $mensaje = "Push {$accion} en " . count($exitosos) . " de " . count($checadores) . " checadores.";
+        if (!empty($fallidos)) {
+            $mensaje .= ' Fallaron: ' . implode(', ', $fallidos) . '.';
+
+            return redirect()->route('checadores.index')->with('error', $mensaje);
+        }
+
+        return redirect()->route('checadores.index')->with('success', $mensaje);
+    }
+
+    /**
+     * Envía la configuración de HTTP Listening (httpHosts/1) al dispositivo.
+     * Requiere XML (el firmware rechaza JSON en el PUT aunque el GET sí lo acepte).
+     */
+    private function configurarPushEnDispositivo(Checador $checador, bool $activar): array
+    {
+        $xml = $activar ? $this->xmlActivarPush() : $this->xmlDesactivarPush();
+        $url = "http://{$checador->ip}:{$checador->puerto}/ISAPI/Event/notification/httpHosts/1";
+
+        try {
+            $response = Http::withDigestAuth($checador->usuario, $checador->password)
+                ->withBody($xml, 'application/xml')
+                ->timeout(6)
+                ->put($url);
+
+            if ($response->successful() && str_contains($response->body(), '<statusCode>1</statusCode>')) {
+                return ['ok' => true];
+            }
+
+            return ['ok' => false, 'error' => 'el dispositivo rechazó la configuración'];
+        } catch (\Exception $e) {
+            return ['ok' => false, 'error' => 'no se pudo conectar'];
+        }
+    }
+
+    private function xmlActivarPush(): string
+    {
+        $ip = config('checadores.webhook_ip');
+        $puerto = config('checadores.webhook_port');
+        $path = config('checadores.webhook_path');
+        $codigos = self::CODIGOS_CHECADA_EXITOSA;
+
+        return <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<HttpHostNotification version="2.0" xmlns="http://www.isapi.org/ver20/XMLSchema">
+<id>1</id>
+<url>{$path}</url>
+<protocolType>HTTP</protocolType>
+<parameterFormatType>XML</parameterFormatType>
+<addressingFormatType>ipaddress</addressingFormatType>
+<ipAddress>{$ip}</ipAddress>
+<portNo>{$puerto}</portNo>
+<httpAuthenticationMethod>none</httpAuthenticationMethod>
+<SubscribeEvent>
+<heartbeat>30</heartbeat>
+<eventMode>list</eventMode>
+<EventList>
+<Event>
+<type>AccessControllerEvent</type>
+<minorAlarm></minorAlarm>
+<minorException></minorException>
+<minorOperation></minorOperation>
+<minorEvent>{$codigos}</minorEvent>
+<pictureURLType>binary</pictureURLType>
+</Event>
+</EventList>
+</SubscribeEvent>
+</HttpHostNotification>
+XML;
+    }
+
+    private function xmlDesactivarPush(): string
+    {
+        return <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<HttpHostNotification version="2.0" xmlns="http://www.isapi.org/ver20/XMLSchema">
+<id>1</id>
+<url></url>
+<protocolType>HTTP</protocolType>
+<parameterFormatType></parameterFormatType>
+<addressingFormatType>ipaddress</addressingFormatType>
+<ipAddress>0.0.0.0</ipAddress>
+<portNo>0</portNo>
+<httpAuthenticationMethod>none</httpAuthenticationMethod>
+</HttpHostNotification>
+XML;
     }
 }

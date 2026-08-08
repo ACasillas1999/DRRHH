@@ -462,6 +462,7 @@
             box-shadow: var(--shadow-lg);
             padding: 1rem;
             z-index: 150;
+            animation: modalFadeIn 0.2s ease;
         }
 
         .notif-header {
@@ -474,12 +475,10 @@
         }
 
         .notif-body {
-            max-height: 200px;
+            max-height: 350px;
             overflow-y: auto;
             font-size: 0.85rem;
             color: var(--text-muted);
-            text-align: center;
-            padding: 1rem 0;
         }
 
         /* ----- MOBILE RESPONSIVENESS ----- */
@@ -709,13 +708,12 @@
             </a>
 
             <!-- 8. Historial -->
-            <a href="#historial" class="menu-item menu-item-soon" data-roles="Admin,RH">
+            <a href="{{ route('historial.index') }}" class="menu-item {{ Request::is('historial*') ? 'active' : '' }}" data-roles="Admin,RH">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
                 <span>Historial</span>
-                <span class="menu-item-soon-tag">Próx</span>
             </a>
 
             <!-- 9. Inventario -->
@@ -771,9 +769,13 @@
                     </svg>
                 </a>
                 <div class="menu-subitems {{ Request::is('incidencias*') || Request::is('checadores*') ? '' : 'hidden' }}">
-                    <a href="{{ route('incidencias.index') }}" class="menu-item menu-subitem {{ Request::is('incidencias*') ? 'active' : '' }}" data-roles="Admin,RH,Jefe,Gerente,Encargado,Nominas">
+                    <a href="{{ route('incidencias.index') }}" class="menu-item menu-subitem {{ Request::is('incidencias*') && !Request::is('incidencias/reportes*') ? 'active' : '' }}" data-roles="Admin,RH,Jefe,Gerente,Encargado,Nominas">
                         <span class="subitem-bullet"></span>
                         <span>Incidencias y Asistencias</span>
+                    </a>
+                    <a href="{{ route('incidencias.reportes') }}" class="menu-item menu-subitem {{ Request::is('incidencias/reportes*') ? 'active' : '' }}" data-roles="Admin,RH,Jefe,Gerente,Encargado,Nominas">
+                        <span class="subitem-bullet"></span>
+                        <span>Reportes de Asistencia</span>
                     </a>
                     <a href="{{ route('checadores.index') }}" class="menu-item menu-subitem {{ Request::is('checadores') || (Request::is('checadores*') && !Request::is('checadores-lector*')) ? 'active' : '' }}" data-roles="Admin,RH">
                         <span class="subitem-bullet"></span>
@@ -787,7 +789,7 @@
             </div>
 
             <!-- 15. Reclutamiento -->
-            <a href="#reclutamiento" class="menu-item menu-item-soon" data-roles="Admin,RH">
+            <a href="{{ route('reclutamiento.index') }}" class="menu-item {{ Request::is('reclutamiento*') ? 'active' : '' }}" data-roles="Admin,RH">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -795,7 +797,6 @@
                     <path d="M8 11h6"></path>
                 </svg>
                 <span>Reclutamiento</span>
-                <span class="menu-item-soon-tag">Próx</span>
             </a>
         </nav>
 
@@ -963,15 +964,14 @@
             const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             setTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
 
-            // 4. Modal de Notificaciones (Simulado)
+            // 4. Modal de Notificaciones (Dinámicas de DB)
             notifBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isVisible = notifModal.style.display === 'block';
                 notifModal.style.display = isVisible ? 'none' : 'block';
                 
                 if (!isVisible) {
-                    // Cargar notificaciones / eventos
-                    fetchNotifMock();
+                    fetchNotifReal();
                 }
             });
 
@@ -981,28 +981,105 @@
                 }
             });
 
-            function fetchNotifMock() {
-                notifBody.innerHTML = '<div style="padding: 1rem 0;">Buscando eventos...</div>';
+            function fetchNotifReal() {
+                notifBody.innerHTML = '<div style="padding: 1.5rem 0; text-align: center; color: var(--text-muted);">Buscando alertas de hoy...</div>';
                 
-                // Hacemos una consulta rápida a un endpoint local o simulamos en JS de forma elegante
-                const hoy = new Date();
-                const dia = hoy.getDate();
-                const mes = hoy.getMonth() + 1;
-                
-                // Podemos hacer fetch de cumpleaños o bajas reales
-                notifBody.innerHTML = `
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem; text-align: left;">
-                        <div style="padding: 0.5rem; border-radius: 8px; background-color: var(--primary-light); color: var(--primary); font-size: 0.8rem; font-weight: 500;">
-                            🎂 ¡Cumpleaños de hoy!
-                            <div style="font-weight: normal; margin-top: 0.2rem; color: var(--text-main);">Verifica la lista de diario para felicitarlos.</div>
-                        </div>
-                        <div style="padding: 0.5rem; border-radius: 8px; background-color: var(--bg-page); border: 1px solid var(--border-color); font-size: 0.8rem;">
-                            📅 Evento Diario
-                            <div style="margin-top: 0.2rem; color: var(--text-muted);">Sin eventos extraordinarios reportados.</div>
-                        </div>
-                    </div>
-                `;
+                fetch('/notificaciones')
+                    .then(res => res.json())
+                    .then(data => {
+                        const dot = document.querySelector('.top-btn-dot');
+                        if (dot) {
+                            dot.style.display = data.total > 0 ? 'block' : 'none';
+                        }
+
+                        if (data.total === 0) {
+                            notifBody.innerHTML = `
+                                <div style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.5rem; opacity: 0.5; color: var(--text-muted);">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                    </svg>
+                                    <div>¡Todo al día!</div>
+                                    <div style="font-size: 0.75rem; margin-top: 0.25rem;">Sin cumpleaños ni contratos venciendo.</div>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        let html = '<div style="display: flex; flex-direction: column; gap: 0.85rem; padding: 0.25rem 0;">';
+
+                        // Cumpleaños
+                        if (data.cumpleanos && data.cumpleanos.length > 0) {
+                            html += `
+                                <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <div style="font-weight: 600; color: #db2777; font-size: 0.8rem; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.15rem;">
+                                        🎂 ¡Cumpleaños de Hoy!
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                            `;
+                            data.cumpleanos.forEach(emp => {
+                                html += `
+                                    <a href="/empleados/${emp.N_Empleado}" style="color: var(--text-main); text-decoration: none; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; padding: 0.5rem 0.6rem; border-radius: 8px; background-color: var(--bg-page); border: 1px solid var(--border-color); transition: all 0.2s ease;">
+                                        <span style="font-weight: 500;">${emp.Nombre_Completo}</span>
+                                        <span style="font-size: 0.7rem; color: #db2777; font-weight: 600; background-color: rgba(236,72,153,0.1); padding: 1px 6px; border-radius: 4px;">#${emp.N_Empleado}</span>
+                                    </a>
+                                `;
+                            });
+                            html += `
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        // Contratos por Vencer
+                        if (data.contratosVencer && data.contratosVencer.length > 0) {
+                            const hasBday = data.cumpleanos && data.cumpleanos.length > 0;
+                            const borderTop = hasBday ? 'border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.25rem;' : '';
+                            html += `
+                                <div style="display: flex; flex-direction: column; gap: 0.4rem; ${borderTop}">
+                                    <div style="font-weight: 600; color: #d97706; font-size: 0.8rem; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.15rem;">
+                                        📅 Vencimiento de Contratos
+                                    </div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.15rem;">Próximos 15 días:</div>
+                                    <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                            `;
+                            data.contratosVencer.forEach(c => {
+                                const parts = c.F_Vence.split('-');
+                                const fVenceFormateada = parts.length === 3 ? `${parts[2]}/${parts[1]}` : c.F_Vence;
+                                html += `
+                                    <a href="/empleados/${c.N_Empleado}" style="color: var(--text-main); text-decoration: none; display: flex; flex-direction: column; gap: 0.2rem; padding: 0.5rem 0.6rem; border-radius: 8px; background-color: var(--bg-page); border: 1px solid var(--border-color); transition: all 0.2s ease;">
+                                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 500; align-items: center;">
+                                            <span>${c.personal?.Nombre_Completo || 'Empleado'}</span>
+                                            <span style="font-size: 0.65rem; color: #d97706; font-weight: 600; background-color: rgba(245,158,11,0.1); padding: 1px 6px; border-radius: 4px;">${fVenceFormateada}</span>
+                                        </div>
+                                        <div style="font-size: 0.65rem; color: var(--text-muted);">${c.Tipo_de_Contrato}</div>
+                                    </a>
+                                `;
+                            });
+                            html += `
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        html += '</div>';
+                        notifBody.innerHTML = html;
+                    })
+                    .catch(err => {
+                        console.error('Error fetching notifications:', err);
+                        notifBody.innerHTML = '<div style="padding: 1.5rem 0; color: var(--text-muted); text-align: center; font-size: 0.75rem;">Error al cargar alertas.</div>';
+                    });
             }
+
+            // Consultar inicialmente para pintar el indicador dot
+            fetch('/notificaciones')
+                .then(res => res.json())
+                .then(data => {
+                    const dot = document.querySelector('.top-btn-dot');
+                    if (dot) {
+                        dot.style.display = data.total > 0 ? 'block' : 'none';
+                    }
+                }).catch(e => console.error(e));
         });
 
         // Control de Sub-Menús del Sidebar
