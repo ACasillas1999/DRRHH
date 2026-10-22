@@ -773,7 +773,7 @@
         <div class="banner-left">
             <div class="foto-container" onclick="openPhotoModal()" title="Ver o cambiar foto de perfil">
                 @if(!empty($rutaDocumento?->Ruta_Foto_Empleado))
-                    <img id="bannerProfileImg" class="banner-foto" src="{{ $rutaDocumento->Ruta_Foto_Empleado }}" alt="Foto de perfil" onerror="handleImageError(this, 'bannerDefaultAvatar')">
+                    <img id="bannerProfileImg" class="banner-foto" src="{{ \App\Support\LegacyFile::url($rutaDocumento->Ruta_Foto_Empleado) }}" alt="Foto de perfil" onerror="handleImageError(this, 'bannerDefaultAvatar')">
                     <div id="bannerDefaultAvatar" class="banner-foto default-avatar-svg" style="display:none;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
@@ -1442,7 +1442,7 @@
                                     <td>
                                         <div class="action-btn-group">
                                             @if($con->Ruta_Doc)
-                                                <a class="action-btn action-btn-download" href="{{ $con->Ruta_Doc }}" target="_blank" title="Descargar contrato">
+                                                <a class="action-btn action-btn-download" href="{{ \App\Support\LegacyFile::url($con->Ruta_Doc) }}" target="_blank" title="Descargar contrato">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                                         <polyline points="7 10 12 15 17 10"></polyline>
@@ -1616,7 +1616,7 @@
         <h2>Foto de Perfil</h2>
         <div style="margin: 1.5rem 0; display: flex; justify-content: center;">
             @if(!empty($rutaDocumento?->Ruta_Foto_Empleado))
-                <img id="modalProfileImg" src="{{ $rutaDocumento->Ruta_Foto_Empleado }}" alt="Foto de perfil grande" style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border-color); box-shadow: var(--shadow-md);" onerror="handleImageError(this, 'modalDefaultAvatar')">
+                <img id="modalProfileImg" src="{{ \App\Support\LegacyFile::url($rutaDocumento->Ruta_Foto_Empleado) }}" alt="Foto de perfil grande" style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border-color); box-shadow: var(--shadow-md);" onerror="handleImageError(this, 'modalDefaultAvatar')">
                 <div id="modalDefaultAvatar" class="default-avatar-svg" style="width: 200px; height: 200px; border-radius: 50%; background-color: var(--bg-page); color: var(--text-muted); border: 3px solid var(--border-color); display: none; align-items: center; justify-content: center;">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 100px; height: 100px;">
                         <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
