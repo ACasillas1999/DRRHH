@@ -59,7 +59,7 @@ class AltaBajaImssController extends Controller
         FechaLaboral::where('N_Empleado', $n_empleado)->update(['Fecha_Alta_IMSS' => $data['fecha_alta_imss']]);
 
         HistorialCambio::create([
-            'Usuario_ID' => null,
+            'Usuario_ID' => auth()->id(),
             'N_Empleado' => $n_empleado,
             'Cambio' => "Actualización de la Fecha de ALTA IMSS del empleado con ID: {$n_empleado}",
             'Fecha_Hora' => now(),
@@ -75,7 +75,7 @@ class AltaBajaImssController extends Controller
         FechaLaboral::where('N_Empleado', $n_empleado)->update(['Fecha_Baja_IMSS' => $data['fecha_baja_imss']]);
 
         HistorialCambio::create([
-            'Usuario_ID' => null,
+            'Usuario_ID' => auth()->id(),
             'N_Empleado' => $n_empleado,
             'Cambio' => "Actualización de la Fecha de BAJA IMSS del empleado con ID: {$n_empleado}",
             'Fecha_Hora' => now(),

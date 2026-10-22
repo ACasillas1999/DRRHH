@@ -177,7 +177,7 @@ class EmpleadoCrearController extends Controller
             }
 
             HistorialCambio::create([
-                'Usuario_ID' => null,
+                'Usuario_ID' => auth()->id(),
                 'N_Empleado' => $nEmpleado,
                 'Cambio' => "Registro de Nuevo Empleado con ID: {$nEmpleado}",
                 'Fecha_Hora' => now(),

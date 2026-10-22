@@ -46,7 +46,7 @@ class EmpleadoPersonalesController extends Controller
         $empleado->update($data);
 
         HistorialCambio::create([
-            'Usuario_ID' => null,
+            'Usuario_ID' => auth()->id(),
             'N_Empleado' => $n_empleado,
             'Cambio' => "Actualización de datos Personales del empleado con ID: {$n_empleado}",
             'Fecha_Hora' => now(),

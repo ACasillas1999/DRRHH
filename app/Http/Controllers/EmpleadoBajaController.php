@@ -34,7 +34,7 @@ class EmpleadoBajaController extends Controller
             ]);
 
             HistorialCambio::create([
-                'Usuario_ID' => null,
+                'Usuario_ID' => auth()->id(),
                 'N_Empleado' => $n_empleado,
                 'Cambio' => "Se dio de BAJA a Empleado con ID: {$n_empleado}",
                 'Fecha_Hora' => now(),
