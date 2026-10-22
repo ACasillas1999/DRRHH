@@ -1294,31 +1294,65 @@
                     <table class="premium-table">
                         <thead>
                             <tr>
-                                <th>Producto</th>
+                                {{-- Mismas columnas que el legacy (Detalles_Empleado.php) --}}
+                                <th>N° Asignación</th>
+                                <th>Nombre Empleado</th>
+                                <th>ID Producto</th>
                                 <th>Cantidad</th>
-                                <th>Fecha Asignación</th>
-                                <th>Documento</th>
+                                <th>Nombre del producto</th>
+                                <th>Talla</th>
+                                <th>Fecha de Asignación</th>
+                                <th>Fecha de Renovación</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($asignaciones as $asignacion)
                                 <tr>
-                                    <td class="font-semibold">{{ $asignacion->producto->Nombre ?? '—' }}</td>
-                                    <td>{{ $asignacion->cantidad ?: '—' }}</td>
-                                    <td>{{ $asignacion->Fecha_Asignacion ?: '—' }}</td>
+                                    <td>{{ $asignacion->ID }}</td>
+                                    <td>{{ $empleado->Nombre_Completo }}</td>
+                                    <td>{{ $asignacion->Producto_ID }}</td>
+                                    <td>{{ $asignacion->cantidad }}</td>
+                                    <td class="font-semibold">{{ $asignacion->producto->Nombre }}</td>
+                                    {{-- "Talla" en el legacy es la columna productos.Tipo (en Eloquent importan las mayúsculas) --}}
+                                    <td>{{ $asignacion->producto->Tipo }}</td>
+                                    <td>{{ $asignacion->Fecha_Asignacion }}</td>
+                                    <td>{{ $asignacion->Fecha_Renovacion }}</td>
                                     <td>
-                                        @if($asignacion->Ruta_Documento)
-                                            <a class="doc-link" href="{{ $asignacion->Ruta_Documento }}" target="_blank">Ver documento</a>
-                                        @else
-                                            Sin documento
-                                        @endif
+                                        <div class="action-btn-group">
+                                            @if($asignacion->Ruta_Documento)
+                                                {{-- Igual que el legacy: si ya tiene documento, SOLO se puede descargar --}}
+                                                <a class="action-btn action-btn-download" href="{{ \App\Support\LegacyFile::url($asignacion->Ruta_Documento) }}" target="_blank" title="Descargar documento">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                                    </svg>
+                                                </a>
+                                            @else
+                                                {{-- Sin documento: descargar el machote de entrega de uniformes del legacy --}}
+                                                <a class="action-btn action-btn-generate" href="{{ \App\Support\LegacyFile::url('/RH/Machotes/Ingreso/ENTREGA_DE_UNIFORMES_OPERATIVO.doc') }}" title="Descargar machote">
+                                                    Machote
+                                                </a>
+                                                {{-- Sube la entrega firmada a ESTA asignación (por su ID) --}}
+                                                <button type="button" class="action-btn action-btn-upload" onclick="openAsignacionModal({{ $asignacion->ID }}, '{{ $asignacion->producto->Nombre }}')" title="Subir entrega firmada">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="vacio-row">No hay asignaciones registradas.</td>
+                                    {{-- 9 columnas como en el legacy --}}
+                                    <td colspan="9" class="vacio-row">No hay asignaciones registradas.</td>
                                 </tr>
                             @endforelse
+
                         </tbody>
                     </table>
                 </div>
@@ -1624,6 +1658,29 @@
     </div>
 </div>
 
+{{-- MODAL: SUBIR ENTREGA FIRMADA DE ASIGNACIÓN (port de procesar_asignaciones.php) --}}
+<div id="asignacionUploadModal" class="modal-overlay">
+    <div class="modal-box">
+        {{-- El título se llena desde openAsignacionModal() con el producto y el ID de la asignación --}}
+        <h2 id="asignacionUploadTitle">Subir Entrega Firmada</h2>
+        <form method="POST" action="{{ route('empleados.asignaciones.subir', $empleado->N_Empleado) }}" enctype="multipart/form-data">
+            @csrf
+            {{-- ID de la asignación a actualizar; lo llena openAsignacionModal() --}}
+            <input type="hidden" id="asignacion_id" name="asignacion_id">
+            <div class="campo" style="margin-top:1rem">
+                {{-- Mismas extensiones que acepta el legacy --}}
+                <label for="archivo_asignacion" class="detail-label">Seleccionar Archivo (PDF, DOC, DOCX, TXT)</label>
+                <input type="file" id="archivo_asignacion" name="archivo" accept=".pdf,.doc,.docx,.txt" required>
+            </div>
+            <div style="display:flex; gap:0.75rem; margin-top:1.5rem; justify-content: flex-end;">
+                <button type="button" class="btn-cancelar" onclick="closeAsignacionModal()">Cancelar</button>
+                <button type="submit" class="btn-primary-modal">Subir Documento</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
 {{-- MODAL: SUBIR CONTRATO FIRMADO (port de procesar_contrato.php) --}}
 <div id="contratoUploadModal" class="modal-overlay">
     <div class="modal-box">
@@ -1856,6 +1913,21 @@
         document.getElementById('contratoUploadModal').style.display = 'none';
         document.getElementById('archivo_contrato').value = '';
     }
+
+    
+    // Abre el modal de asignación y guarda qué asignación (ID) se va a actualizar
+    function openAsignacionModal(asignacionId, producto) {
+        document.getElementById('asignacion_id').value = asignacionId;
+        document.getElementById('asignacionUploadTitle').textContent = 'Subir Entrega Firmada ' + producto + ' (N° ' + asignacionId + ')';
+        document.getElementById('asignacionUploadModal').style.display = 'flex';
+    }
+
+    // Cierra el modal de asignación y limpia el archivo seleccionado
+    function closeAsignacionModal() {
+        document.getElementById('asignacionUploadModal').style.display = 'none';
+        document.getElementById('archivo_asignacion').value = '';
+    }
+
 
 
 

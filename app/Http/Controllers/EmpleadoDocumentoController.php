@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AsignacionProducto;
 use App\Models\Contrato;
 use App\Models\DocumentoEmpleado;
 use App\Models\DocumentoLaboral;
@@ -285,6 +286,45 @@ class EmpleadoDocumentoController extends Controller
         return redirect()->route('empleados.show', $n_empleado)->with('status', 'El archivo se cargó correctamente.');
     }
 
+    /**
+     * Port de procesar_asignaciones.php: guarda la entrega firmada de una asignación
+     * en la misma carpeta y con el mismo formato de ruta que el legacy.
+     */
+    public function subirAsignacion(Request $request, string $n_empleado): RedirectResponse
+    {
+        // Mismas extensiones permitidas que el legacy ($allowedExtensions)
+        $data = $request->validate([
+            'asignacion_id' => ['required', 'integer'],
+            'archivo' => ['required', 'file', 'extensions:pdf,doc,docx,txt'],
+        ], [
+            'archivo.extensions' => 'Solo se permiten archivos PDF, DOC, DOCX y TXT.',
+        ]);
+
+        // Igual que el legacy: la asignación debe pertenecer al empleado (WHERE ID = ? AND N_Empleado = ?)
+        $asignacion = AsignacionProducto::where('ID', $data['asignacion_id'])->where('N_Empleado', $n_empleado)->first();
+
+        // El legacy muestra este mismo texto (copiado de contratos) cuando el UPDATE no afecta filas
+        if (!$asignacion) {
+            return back()->withErrors(['archivo' => 'No se pudo actualizar el contrato.']);
+        }
+
+        // Carpeta física del legacy: C:/xampp/htdocs/RH/RH/Asignaciones (se crea si no existe, como en el legacy)
+        $carpeta = rtrim(config('legacy.path'), '/') . '/RH/Asignaciones';
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0755, true);
+        }
+
+        // Mismo formato de nombre que el legacy: uniqid("empleado_{N}_Asignacion") + extensión en minúsculas
+        $archivo = $request->file('archivo');
+        $nombreArchivo = uniqid('empleado_' . $n_empleado . '_Asignacion') . '.' . strtolower($archivo->getClientOriginalExtension());
+        $archivo->move($carpeta, $nombreArchivo);
+
+        // Se guarda la ruta relativa tal cual la guarda el legacy ("RH/Asignaciones/...")
+        $asignacion->update(['Ruta_Documento' => 'RH/Asignaciones/' . $nombreArchivo]);
+
+        // Mismo mensaje de éxito que el alert() del legacy
+        return redirect()->route('empleados.show', $n_empleado)->with('status', 'El archivo se cargó correctamente.');
+    }
 
     public function storeUpload(Request $request, string $n_empleado): RedirectResponse
     {

@@ -73,6 +73,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/empleados/{n_empleado}/documentos', [EmpleadoDocumentoController::class, 'storeUpload'])->name('empleados.documentos.store');
         // Subir contrato firmado a un contrato específico (por ID). Port de procesar_contrato.php
         Route::post('/empleados/{n_empleado}/contratos/subir', [EmpleadoDocumentoController::class, 'subirContrato'])->name('empleados.contratos.subir');
+        // Subir la entrega firmada de una asignación (uniformes/equipo) por su ID. Port de procesar_asignaciones.php
+        Route::post('/empleados/{n_empleado}/asignaciones/subir', [EmpleadoDocumentoController::class, 'subirAsignacion'])->name('empleados.asignaciones.subir');
         Route::post('/empleados/{n_empleado}/documentos-personales', [EmpleadoDocumentoController::class, 'subirPersonal'])->name('empleados.documentos.subirPersonal');
         Route::post('/empleados/{n_empleado}/documentos-laborales', [EmpleadoDocumentoController::class, 'subirLaboral'])->name('empleados.documentos.subirLaboral');
 
@@ -138,3 +140,5 @@ Route::middleware('auth')->group(function () {
         Route::get('/api/usuarios/responsables', [UsuarioController::class, 'apiResponsables'])->name('api.usuarios.responsables');
     });
 });
+
+

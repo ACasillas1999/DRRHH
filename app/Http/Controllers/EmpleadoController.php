@@ -105,7 +105,8 @@ class EmpleadoController extends Controller
         $rutaDocumento = RutaDocumento::where('N_Empleado', $n_empleado)->first();
         $fechasLaborales = FechaLaboral::where('N_Empleado', $n_empleado)->orderByDesc('Fecha_Ingreso')->get();
         $documentosImss = DocumentoImss::where('n_empleado', $n_empleado)->get();
-        $asignaciones = AsignacionProducto::with('producto')->where('N_Empleado', $n_empleado)->orderByDesc('Fecha_Asignacion')->get();
+        // Igual que el legacy: JOIN con productos (has) para excluir asignaciones sin producto, y orden por ID (el legacy no usa ORDER BY)
+        $asignaciones = AsignacionProducto::with('producto')->has('producto')->where('N_Empleado', $n_empleado)->orderBy('ID')->get();
         $pagos = PagoMensual::with('producto')->where('N_Empleado', $n_empleado)->orderByDesc('Fecha_Inicio')->get();
         $vacacionesHistorial = Vacacion::where('N_Empleado', $n_empleado)->get();
         $incapacidades = Incapacidad::where('N_Empleado', $n_empleado)->get();
