@@ -1436,6 +1436,8 @@
                     <table class="premium-table">
                         <thead>
                             <tr>
+                                {{-- Columna ID como en el legacy --}}
+                                <th>ID</th>
                                 <th>Tipo de Contrato</th>
                                 <th>Fecha Inicio</th>
                                 <th>Fecha Vence</th>
@@ -1443,14 +1445,24 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                // Botón "Generar" por tipo de contrato (el legacy usa Determinado.php, GenerarDoc.php y Convenio.php)
+                                $generarContrato = [
+                                    'Determinado' => ['contrato_determinado', 'Contrato Determinado', route('empleados.contratos.determinado', $empleado->N_Empleado)],
+                                    'Indeterminado' => ['contrato_indeterminado', 'Contrato Indeterminado', route('empleados.contratos.indeterminado', $empleado->N_Empleado)],
+                                    'Convenio' => ['convenio', 'Convenio de Confidencialidad y Fidelidad', route('empleados.contratos.convenio', $empleado->N_Empleado)],
+                                ];
+                            @endphp
                             @forelse($contratos as $con)
                                 <tr>
+                                    <td>{{ $con->ID }}</td>
                                     <td class="font-semibold">{{ $con->Tipo_de_Contrato }}</td>
                                     <td>{{ $con->F_Inicio ? \Illuminate\Support\Carbon::parse($con->F_Inicio)->format('d/m/Y') : '—' }}</td>
                                     <td>{{ $con->F_Vence ? \Illuminate\Support\Carbon::parse($con->F_Vence)->format('d/m/Y') : 'Indeterminado' }}</td>
                                     <td>
                                         <div class="action-btn-group">
                                             @if($con->Ruta_Doc)
+                                                {{-- Igual que el legacy: si ya tiene archivo, SOLO se puede descargar --}}
                                                 <a class="action-btn action-btn-download" href="{{ \App\Support\LegacyFile::url($con->Ruta_Doc) }}" target="_blank" title="Descargar contrato">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1458,23 +1470,38 @@
                                                         <line x1="12" y1="15" x2="12" y2="3"></line>
                                                     </svg>
                                                 </a>
+                                            @elseif(isset($generarContrato[$con->Tipo_de_Contrato]))
+                                                {{-- Sin archivo y es Determinado/Indeterminado/Convenio: Generar + Subir --}}
+                                                @php([$docKey, $docTitulo, $docRuta] = $generarContrato[$con->Tipo_de_Contrato])
+                                                <button type="button" class="action-btn action-btn-generate" onclick="openDocumentPreview('{{ $docKey }}', '{{ $docTitulo }}', '{{ $docRuta }}')" title="Generar contrato">
+                                                    Generar
+                                                </button>
+                                                {{-- Sube el archivo a ESTE contrato (por su ID), no como documento suelto --}}
+                                                <button type="button" class="action-btn action-btn-upload" onclick="openContratoModal({{ $con->ID }}, '{{ $con->Tipo_de_Contrato }}')" title="Subir contrato firmado">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                                    </svg>
+                                                </button>
+                                            @elseif($con->Tipo_de_Contrato === 'Evaluacion')
+                                                {{-- Evaluación sin archivo: mismos 3 formularios de Google que el legacy (no se sube nada) --}}
+                                                <div style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.75rem;">
+                                                    <a href="https://forms.gle/jhvSzRgQGyYMVyqL7" target="_blank" rel="noopener">Evaluación 2do contrato</a>
+                                                    <a href="https://forms.gle/z1qVW8EJ2n3qDbVi8" target="_blank" rel="noopener">Evaluación 3er contrato</a>
+                                                    <a href="https://forms.gle/fr9UpKFwCLwNPReg7" target="_blank" rel="noopener">Evaluación Contrato de planta</a>
+                                                </div>
                                             @endif
-                                            {{-- Sube el archivo a ESTE contrato (por su ID), no como documento suelto --}}
-                                            <button type="button" class="action-btn action-btn-upload" onclick="openContratoModal({{ $con->ID }}, '{{ $con->Tipo_de_Contrato }}')" title="Subir contrato firmado">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                    <polyline points="17 8 12 3 7 8"></polyline>
-                                                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                                                </svg>
-                                            </button>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="vacio-row">No se encontraron contratos registrados.</td>
+                                    {{-- 5 columnas ahora que se agregó ID --}}
+                                    <td colspan="5" class="vacio-row">No se encontraron contratos registrados.</td>
                                 </tr>
                             @endforelse
+
                         </tbody>
                     </table>
                 </div>

@@ -111,7 +111,8 @@ class EmpleadoController extends Controller
         $incapacidades = Incapacidad::where('N_Empleado', $n_empleado)->get();
         $documentosGenerados = DocumentoGenerado::where('N_Empleado', $n_empleado)->orderByDesc('Fecha_Subida')->get();
         $historial = $empleado->historialCambios()->orderByDesc('Fecha_Hora')->get();
-        $contratos = \App\Models\Contrato::where('N_Empleado', $n_empleado)->orderBy('F_Inicio')->get();
+        // Orden por ID: el legacy (Manejo_De_Documentos.php) no usa ORDER BY y MySQL los regresa en orden de inserción
+        $contratos = \App\Models\Contrato::where('N_Empleado', $n_empleado)->orderBy('ID')->get();
         $documentosEmpleado = $empleado->documentosEmpleado()->orderBy('Tipo_Documento')->get();
         $documentosLaborales = $empleado->documentosLaborales()->orderBy('Tipo_Documento')->get();
 
