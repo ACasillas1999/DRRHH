@@ -71,6 +71,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/empleados/{n_empleado}/contratos/indeterminado', [EmpleadoDocumentoController::class, 'contratoIndeterminado'])->name('empleados.contratos.indeterminado');
         Route::get('/empleados/{n_empleado}/contratos/convenio', [EmpleadoDocumentoController::class, 'convenio'])->name('empleados.contratos.convenio');
         Route::post('/empleados/{n_empleado}/documentos', [EmpleadoDocumentoController::class, 'storeUpload'])->name('empleados.documentos.store');
+        // Subir contrato firmado a un contrato específico (por ID). Port de procesar_contrato.php
+        Route::post('/empleados/{n_empleado}/contratos/subir', [EmpleadoDocumentoController::class, 'subirContrato'])->name('empleados.contratos.subir');
         Route::post('/empleados/{n_empleado}/documentos-personales', [EmpleadoDocumentoController::class, 'subirPersonal'])->name('empleados.documentos.subirPersonal');
         Route::post('/empleados/{n_empleado}/documentos-laborales', [EmpleadoDocumentoController::class, 'subirLaboral'])->name('empleados.documentos.subirLaboral');
 

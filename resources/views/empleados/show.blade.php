@@ -760,6 +760,15 @@
         </div>
     @endif
 
+    
+    {{-- Muestra el primer error de validación (ej. extensión no permitida al subir un contrato) --}}
+    @if ($errors->any())
+        <div class="detail-card" style="border-left: 5px solid #ef4444; color: #dc2626; font-weight: 600; padding: 1rem 1.5rem;">
+            {{ $errors->first() }}
+        </div>
+    @endif
+
+
     {{-- 1. ENCABEZADO TIPO BANNER --}}
     <div class="employee-banner">
         <a href="{{ route('empleados.index') }}" class="back-btn-float">
@@ -1450,7 +1459,8 @@
                                                     </svg>
                                                 </a>
                                             @endif
-                                            <button type="button" class="action-btn action-btn-upload" onclick="openUploadModal('Contrato ' + '{{ $con->Tipo_de_Contrato }}')" title="Subir contrato firmado">
+                                            {{-- Sube el archivo a ESTE contrato (por su ID), no como documento suelto --}}
+                                            <button type="button" class="action-btn action-btn-upload" onclick="openContratoModal({{ $con->ID }}, '{{ $con->Tipo_de_Contrato }}')" title="Subir contrato firmado">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                                     <polyline points="17 8 12 3 7 8"></polyline>
@@ -1586,6 +1596,30 @@
         </form>
     </div>
 </div>
+
+{{-- MODAL: SUBIR CONTRATO FIRMADO (port de procesar_contrato.php) --}}
+<div id="contratoUploadModal" class="modal-overlay">
+    <div class="modal-box">
+        {{-- El título se llena desde openContratoModal() con el tipo y el ID del contrato --}}
+        <h2 id="contratoUploadTitle">Subir Contrato</h2>
+        <form method="POST" action="{{ route('empleados.contratos.subir', $empleado->N_Empleado) }}" enctype="multipart/form-data">
+            @csrf
+            {{-- ID del contrato a actualizar; lo llena openContratoModal() --}}
+            <input type="hidden" id="contrato_id" name="contrato_id">
+            <div class="campo" style="margin-top:1rem">
+                {{-- Mismas extensiones que acepta el legacy --}}
+                <label for="archivo_contrato" class="detail-label">Seleccionar Archivo (PDF, DOC, DOCX, TXT)</label>
+                <input type="file" id="archivo_contrato" name="archivo" accept=".pdf,.doc,.docx,.txt" required>
+            </div>
+            <div style="display:flex; gap:0.75rem; margin-top:1.5rem; justify-content: flex-end;">
+                <button type="button" class="btn-cancelar" onclick="closeContratoModal()">Cancelar</button>
+                <button type="submit" class="btn-primary-modal">Subir Contrato</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
 
 {{-- MODAL: SUBIR DOCUMENTO DE EXPEDIENTE (PERSONAL / LABORAL) --}}
 <div id="expedienteUploadModal" class="modal-overlay">
@@ -1781,6 +1815,22 @@
         document.getElementById('uploadModal').style.display = 'none';
         document.getElementById('documento').value = ''; // Limpiar archivo seleccionado
     }
+
+    
+    // Abre el modal de contrato y guarda qué contrato (ID) se va a actualizar
+    function openContratoModal(contratoId, tipo) {
+        document.getElementById('contrato_id').value = contratoId;
+        document.getElementById('contratoUploadTitle').textContent = 'Subir Contrato ' + tipo + ' (ID ' + contratoId + ')';
+        document.getElementById('contratoUploadModal').style.display = 'flex';
+    }
+
+    // Cierra el modal de contrato y limpia el archivo seleccionado
+    function closeContratoModal() {
+        document.getElementById('contratoUploadModal').style.display = 'none';
+        document.getElementById('archivo_contrato').value = '';
+    }
+
+
 
     // Ficha Nómina generation handled by openDocumentPreview
 

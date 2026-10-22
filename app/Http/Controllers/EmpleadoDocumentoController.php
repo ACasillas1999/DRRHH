@@ -245,6 +245,47 @@ class EmpleadoDocumentoController extends Controller
         return $this->descargar($archivo);
     }
 
+    /**
+     * Port de procesar_contrato.php: guarda el contrato firmado en la misma carpeta
+     * y con el mismo formato de ruta que el legacy, para que ambas apps lo vean.
+     */
+    public function subirContrato(Request $request, string $n_empleado): RedirectResponse
+    {
+        // Mismas extensiones permitidas que el legacy ($allowedExtensions) y su mismo mensaje de error
+        $data = $request->validate([
+            'contrato_id' => ['required', 'integer'],
+            'archivo' => ['required', 'file', 'extensions:pdf,doc,docx,txt'],
+        ], [
+            'archivo.extensions' => 'Solo se permiten archivos PDF, DOC, DOCX y TXT.',
+        ]);
+
+        // Igual que el legacy: el contrato debe pertenecer al empleado (WHERE ID = ? AND N_Empleado = ?)
+        $contrato = Contrato::where('ID', $data['contrato_id'])->where('N_Empleado', $n_empleado)->first();
+
+        // Mismo mensaje que muestra el legacy cuando el UPDATE no afecta filas
+        if (!$contrato) {
+            return back()->withErrors(['archivo' => 'No se pudo actualizar el contrato.']);
+        }
+
+        // Carpeta física del legacy: C:/xampp/htdocs/RH/RH/Contratos_Firmados (se crea si no existe, como en el legacy)
+        $carpeta = rtrim(config('legacy.path'), '/') . '/RH/Contratos_Firmados';
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0755, true);
+        }
+
+        // Mismo formato de nombre que el legacy: uniqid("empleado_{N}_") + extensión en minúsculas
+        $archivo = $request->file('archivo');
+        $nombreArchivo = uniqid('empleado_' . $n_empleado . '_') . '.' . strtolower($archivo->getClientOriginalExtension());
+        $archivo->move($carpeta, $nombreArchivo);
+
+        // Se guarda la ruta relativa tal cual la guarda el legacy ("RH/Contratos_Firmados/...")
+        $contrato->update(['Ruta_Doc' => 'RH/Contratos_Firmados/' . $nombreArchivo]);
+
+        // Mismo mensaje de éxito que el alert() del legacy
+        return redirect()->route('empleados.show', $n_empleado)->with('status', 'El archivo se cargó correctamente.');
+    }
+
+
     public function storeUpload(Request $request, string $n_empleado): RedirectResponse
     {
         $data = $request->validate([
