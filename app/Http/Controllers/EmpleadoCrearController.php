@@ -150,7 +150,7 @@ class EmpleadoCrearController extends Controller
 
             RutaDocumento::create([
                 'N_Empleado' => $nEmpleado,
-                'Ruta_Foto_Empleado' => '/Img/avatar.png',
+                'Ruta_Foto_Empleado' => '/RH/Img/avatar.png',
                 'Ruta_Renuncia' => null,
             ]);
 
