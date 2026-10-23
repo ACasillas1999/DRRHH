@@ -70,6 +70,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/empleados/{n_empleado}/contratos/determinado', [EmpleadoDocumentoController::class, 'contratoDeterminado'])->name('empleados.contratos.determinado');
         Route::get('/empleados/{n_empleado}/contratos/indeterminado', [EmpleadoDocumentoController::class, 'contratoIndeterminado'])->name('empleados.contratos.indeterminado');
         Route::get('/empleados/{n_empleado}/contratos/convenio', [EmpleadoDocumentoController::class, 'convenio'])->name('empleados.contratos.convenio');
+        // Pantalla previa a descargar un contrato (port de Generador_Docs/Determinado.php, GenerarDoc.php y Convenio.php)
+        Route::get('/empleados/{n_empleado}/contratos/{tipo}/generar', [EmpleadoDocumentoController::class, 'generarContrato'])->whereIn('tipo', ['determinado', 'indeterminado', 'convenio'])->name('empleados.contratos.generar');
         Route::post('/empleados/{n_empleado}/documentos', [EmpleadoDocumentoController::class, 'storeUpload'])->name('empleados.documentos.store');
         // Subir contrato firmado a un contrato específico (por ID). Port de procesar_contrato.php
         Route::post('/empleados/{n_empleado}/contratos/subir', [EmpleadoDocumentoController::class, 'subirContrato'])->name('empleados.contratos.subir');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\AsignacionProducto;
 use App\Models\Contrato;
 use App\Models\DocumentoEmpleado;
@@ -245,6 +246,41 @@ class EmpleadoDocumentoController extends Controller
 
         return $this->descargar($archivo);
     }
+
+    /**
+     * Port de la pantalla de Generador_Docs del legacy: muestra los datos que usa el contrato
+     * (las mismas 4 consultas, con print_r) y el botón "Descargar Contrato".
+     */
+    public function generarContrato(string $n_empleado, string $tipo)
+    {
+        // Por tipo: título (<h1> del legacy), contratos que consulta en "Rutas de documentos" y ruta que descarga el .docx
+        $config = [
+            'determinado' => ['Determinado', ['Determinado', 'Indeterminado'], 'empleados.contratos.determinado'],
+            'indeterminado' => ['Indeterminado', ['Indeterminado'], 'empleados.contratos.indeterminado'],
+            'convenio' => ['Convenio', ['Indeterminado'], 'empleados.contratos.convenio'],
+        ];
+        [$titulo, $tiposContrato, $rutaDescarga] = $config[$tipo];
+
+        // Mismas consultas que el legacy (SELECT * ...), como arreglos para mostrarlas igual que print_r
+        $personales = (array) DB::table('personales')->where('N_Empleado', $n_empleado)->first();
+        $laborales = (array) DB::table('laborales_empleado')
+            ->join('puestos', 'laborales_empleado.ID_Puesto', '=', 'puestos.ID')
+            ->join('razones_sociales', 'laborales_empleado.Nomeclatura', '=', 'razones_sociales.Nomenclatura')
+            ->where('laborales_empleado.N_Empleado', $n_empleado)
+            ->first();
+        $fechas = DB::table('fechas_laborales')->where('N_Empleado', $n_empleado)->get()->map(fn ($fila) => (array) $fila)->all();
+        $rutas = (array) DB::table('rutas_documentos')
+            ->join('contratos', 'rutas_documentos.N_Empleado', '=', 'contratos.N_Empleado')
+            ->where('contratos.N_Empleado', $n_empleado)
+            ->whereIn('contratos.Tipo_de_Contrato', $tiposContrato)
+            ->first();
+
+        // Igual que el legacy: solo hay botón de descarga si las 4 consultas regresaron datos
+        $hayDatos = $personales && $laborales && $fechas && $rutas;
+
+        return view('empleados.generar-contrato', compact('n_empleado', 'titulo', 'personales', 'laborales', 'fechas', 'rutas', 'hayDatos', 'rutaDescarga'));
+    }
+
 
     /**
      * Port de procesar_contrato.php: guarda el contrato firmado en la misma carpeta

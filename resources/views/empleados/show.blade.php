@@ -1480,13 +1480,10 @@
                         </thead>
                         <tbody>
                             @php
-                                // Botón "Generar" por tipo de contrato (el legacy usa Determinado.php, GenerarDoc.php y Convenio.php)
-                                $generarContrato = [
-                                    'Determinado' => ['contrato_determinado', 'Contrato Determinado', route('empleados.contratos.determinado', $empleado->N_Empleado)],
-                                    'Indeterminado' => ['contrato_indeterminado', 'Contrato Indeterminado', route('empleados.contratos.indeterminado', $empleado->N_Empleado)],
-                                    'Convenio' => ['convenio', 'Convenio de Confidencialidad y Fidelidad', route('empleados.contratos.convenio', $empleado->N_Empleado)],
-                                ];
+                                // Tipo de contrato → generador del legacy (Determinado.php, GenerarDoc.php, Convenio.php)
+                                $generarContrato = ['Determinado' => 'determinado', 'Indeterminado' => 'indeterminado', 'Convenio' => 'convenio'];
                             @endphp
+
                             @forelse($contratos as $con)
                                 <tr>
                                     <td>{{ $con->ID }}</td>
@@ -1505,11 +1502,12 @@
                                                     </svg>
                                                 </a>
                                             @elseif(isset($generarContrato[$con->Tipo_de_Contrato]))
-                                                {{-- Sin archivo y es Determinado/Indeterminado/Convenio: Generar + Subir --}}
-                                                @php([$docKey, $docTitulo, $docRuta] = $generarContrato[$con->Tipo_de_Contrato])
-                                                <button type="button" class="action-btn action-btn-generate" onclick="openDocumentPreview('{{ $docKey }}', '{{ $docTitulo }}', '{{ $docRuta }}')" title="Generar contrato">
+                                               
+                                
+                                                {{-- Igual que el legacy: abre la pantalla del generador en la misma pestaña --}}
+                                                <a class="action-btn action-btn-generate" href="{{ route('empleados.contratos.generar', [$empleado->N_Empleado, $generarContrato[$con->Tipo_de_Contrato]]) }}" title="Generar contrato">
                                                     Generar
-                                                </button>
+                                                </a>
                                                 {{-- Sube el archivo a ESTE contrato (por su ID), no como documento suelto --}}
                                                 <button type="button" class="action-btn action-btn-upload" onclick="openContratoModal({{ $con->ID }}, '{{ $con->Tipo_de_Contrato }}')" title="Subir contrato firmado">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1540,13 +1538,7 @@
                     </table>
                 </div>
 
-                {{-- Generar Contratos --}}
-                <h3 style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.03em;">Generar Plantillas de Contrato</h3>
-                <div class="pagos-btn-row">
-                    <button type="button" class="btn-pago-doc" onclick="openDocumentPreview('contrato_determinado', 'Contrato Determinado', '{{ route('empleados.contratos.determinado', $empleado->N_Empleado) }}')">Contrato Determinado</button>
-                    <button type="button" class="btn-pago-doc" onclick="openDocumentPreview('contrato_indeterminado', 'Contrato Indeterminado', '{{ route('empleados.contratos.indeterminado', $empleado->N_Empleado) }}')">Contrato Indeterminado</button>
-                    <button type="button" class="btn-pago-doc" onclick="openDocumentPreview('convenio', 'Convenio de Confidencialidad y Fidelidad', '{{ route('empleados.contratos.convenio', $empleado->N_Empleado) }}')">Convenio Confidencialidad</button>
-                </div>
+                
             </div>
 
             {{-- Documentos subidos (Ficha nómina / Folio baja adicional) --}}
