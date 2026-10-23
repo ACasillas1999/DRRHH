@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Incapacidad;
 use Illuminate\Support\Facades\DB;
 use App\Models\AsignacionProducto;
 use App\Models\Contrato;
@@ -361,6 +362,48 @@ class EmpleadoDocumentoController extends Controller
         // Mismo mensaje de éxito que el alert() del legacy
         return redirect()->route('empleados.show', $n_empleado)->with('status', 'El archivo se cargó correctamente.');
     }
+
+    
+    /**
+     * Port de procesar_incapacidad.php: guarda el documento de una incapacidad
+     * en la misma carpeta y con el mismo formato de ruta que el legacy.
+     */
+    public function subirIncapacidad(Request $request, string $n_empleado): RedirectResponse
+    {
+        // Mismas extensiones permitidas que el legacy ($allowedExtensions)
+        $data = $request->validate([
+            'incapacidad_id' => ['required', 'integer'],
+            'archivo' => ['required', 'file', 'extensions:pdf,doc,docx,txt'],
+        ], [
+            'archivo.extensions' => 'Solo se permiten archivos PDF, DOC, DOCX y TXT.',
+        ]);
+
+        // Igual que el legacy: la incapacidad debe pertenecer al empleado (WHERE ID = ? AND N_Empleado = ?)
+        $incapacidad = Incapacidad::where('ID', $data['incapacidad_id'])->where('N_Empleado', $n_empleado)->first();
+
+        // El legacy muestra este mismo texto (copiado de contratos) cuando el UPDATE no afecta filas
+        if (!$incapacidad) {
+            return back()->withErrors(['archivo' => 'No se pudo actualizar el contrato.']);
+        }
+
+        // Carpeta física del legacy: C:/xampp/htdocs/RH/RH/Incapacidades (se crea si no existe, como en el legacy)
+        $carpeta = rtrim(config('legacy.path'), '/') . '/RH/Incapacidades';
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0755, true);
+        }
+
+        // Mismo formato de nombre que el legacy: uniqid("empleado_{N}_incapacidad") + extensión en minúsculas
+        $archivo = $request->file('archivo');
+        $nombreArchivo = uniqid('empleado_' . $n_empleado . '_incapacidad') . '.' . strtolower($archivo->getClientOriginalExtension());
+        $archivo->move($carpeta, $nombreArchivo);
+
+        // Se guarda la ruta relativa tal cual la guarda el legacy ("RH/Incapacidades/...")
+        $incapacidad->update(['Ruta_Documento' => 'RH/Incapacidades/' . $nombreArchivo]);
+
+        // Mismo mensaje de éxito que el alert() del legacy
+        return redirect()->route('empleados.show', $n_empleado)->with('status', 'El archivo se cargó correctamente.');
+    }
+
 
     public function storeUpload(Request $request, string $n_empleado): RedirectResponse
     {

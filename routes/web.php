@@ -87,6 +87,10 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('role:Admin,RH')->group(function () {
+        // Subir el documento de una incapacidad por su ID. Port de procesar_incapacidad.php
+        // Va en este grupo porque en el legacy solo Admin y RH ven el botón de subir (Nominas no)
+        Route::post('/empleados/{n_empleado}/incapacidades/subir', [EmpleadoDocumentoController::class, 'subirIncapacidad'])->name('empleados.incapacidades.subir');
+
         Route::resource('razones-sociales', RazonSocialController::class);
 
         Route::resource('puestos', PuestoController::class);

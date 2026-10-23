@@ -111,7 +111,8 @@ class EmpleadoController extends Controller
         // Orden por ID: el legacy no usa ORDER BY y MySQL regresa los pagos en orden de inserción (pago 1, 2, 3...)
         $pagos = PagoMensual::with('producto')->where('N_Empleado', $n_empleado)->orderBy('ID')->get();
         $vacacionesHistorial = Vacacion::where('N_Empleado', $n_empleado)->get();
-        $incapacidades = Incapacidad::where('N_Empleado', $n_empleado)->get();
+        // Orden por ID: el legacy (Resumen_incapacidad.php) no usa ORDER BY y MySQL regresa en orden de inserción
+        $incapacidades = Incapacidad::where('N_Empleado', $n_empleado)->orderBy('ID')->get();
         $documentosGenerados = DocumentoGenerado::where('N_Empleado', $n_empleado)->orderByDesc('Fecha_Subida')->get();
         $historial = $empleado->historialCambios()->orderByDesc('Fecha_Hora')->get();
         // Orden por ID: el legacy (Manejo_De_Documentos.php) no usa ORDER BY y MySQL los regresa en orden de inserción

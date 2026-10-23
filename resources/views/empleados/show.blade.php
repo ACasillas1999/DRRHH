@@ -1150,38 +1150,90 @@
             <div class="detail-card">
                 <h2>Incapacidades</h2>
                 <div class="table-wrap">
+                {{-- Tabla de encabezado del legacy: datos del empleado (Resumen_incapacidad.php) --}}
+                <div class="table-wrap" style="margin-bottom: 1.25rem;">
                     <table class="premium-table">
                         <thead>
                             <tr>
-                                <th>Descripción</th>
-                                <th>Fecha Inicio</th>
-                                <th>Fecha Fin</th>
-                                <th>Total Días</th>
-                                <th>Documento</th>
+                                <th>Número de Empleado</th>
+                                <th>Nombre Completo</th>
+                                <th>Departamento</th>
+                                <th>Puesto</th>
+                                <th>Física</th>
+                                <th>Razon Social</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($incapacidades as $inc)
-                                <tr>
-                                    <td class="font-semibold">{{ $inc->Descripcion ?: '—' }}</td>
-                                    <td>{{ $inc->Fecha_Inicio ?: '—' }}</td>
-                                    <td>{{ $inc->Fecha_Fin ?: '—' }}</td>
-                                    <td>{{ $inc->Total_Dias ?: '—' }}</td>
-                                    <td>
-                                        @if($inc->Ruta_Documento)
-                                            <a class="doc-link" href="{{ $inc->Ruta_Documento }}" target="_blank">Ver documento</a>
-                                        @else
-                                            Sin documento
-                                        @endif
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="vacio-row">Sin incapacidades registradas.</td>
-                                </tr>
-                            @endforelse
+                            <tr>
+                                <td>{{ $empleado->N_Empleado }}</td>
+                                <td class="font-semibold">{{ $empleado->Nombre_Completo }}</td>
+                                <td>{{ $laboral->puesto->Departamento ?? '' }}</td>
+                                <td>{{ $laboral->puesto->Nombre_Puesto ?? '' }}</td>
+                                <td>{{ $laboral->Fisica }}</td>
+                                <td>{{ $laboral->Nomeclatura }}</td>
+                            </tr>
                         </tbody>
                     </table>
+                </div>
+
+                {{-- "Historial" con las mismas 7 columnas que el legacy --}}
+                <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.03em;">Historial</h3>
+                @if($incapacidades->isEmpty())
+                    {{-- Mismo texto que el legacy cuando no hay incapacidades --}}
+                    <p class="vacio-row">No se encontraron resultados para el Empleado proporcionado.</p>
+                @else
+                    <div class="table-wrap">
+                        <table class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Número de Empleado</th>
+                                    <th>Descripción</th>
+                                    <th>Fecha Inicial</th>
+                                    <th>Fecha Final</th>
+                                    <th>Días Tomados</th>
+                                    <th>Documento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($incapacidades as $inc)
+                                    <tr>
+                                        <td>{{ $inc->ID }}</td>
+                                        <td>{{ $inc->N_Empleado }}</td>
+                                        <td class="font-semibold">{{ $inc->Descripcion }}</td>
+                                        <td>{{ $inc->Fecha_Inicio }}</td>
+                                        <td>{{ $inc->Fecha_Fin }}</td>
+                                        <td>{{ $inc->Total_Dias }}</td>
+                                        <td>
+                                            <div class="action-btn-group">
+                                                @if($inc->Ruta_Documento)
+                                                    {{-- Igual que el legacy: si ya tiene documento, SOLO se puede descargar --}}
+                                                    <a class="action-btn action-btn-download" href="{{ \App\Support\LegacyFile::url($inc->Ruta_Documento) }}" target="_blank" title="Descargar documento">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                                        </svg>
+                                                    </a>
+                                                @elseif(in_array(auth()->user()->Rol, ['Admin', 'RH']))
+                                                    {{-- Sin documento: subir, solo Admin y RH (igual que el legacy; la ruta también lo exige) --}}
+                                                    <button type="button" class="action-btn action-btn-upload" onclick="openIncapacidadModal({{ $inc->ID }}, '{{ $inc->Descripcion }}')" title="Subir documento">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                            <polyline points="17 8 12 3 7 8"></polyline>
+                                                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                                                        </svg>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+
                 </div>
             </div>
 
@@ -1676,6 +1728,30 @@
     </div>
 </div>
 
+{{-- MODAL: SUBIR DOCUMENTO DE INCAPACIDAD (port de procesar_incapacidad.php) --}}
+<div id="incapacidadUploadModal" class="modal-overlay">
+    <div class="modal-box">
+        {{-- El título se llena desde openIncapacidadModal() con la descripción y el ID --}}
+        <h2 id="incapacidadUploadTitle">Subir Documento de Incapacidad</h2>
+        <form method="POST" action="{{ route('empleados.incapacidades.subir', $empleado->N_Empleado) }}" enctype="multipart/form-data">
+            @csrf
+            {{-- ID de la incapacidad a actualizar; lo llena openIncapacidadModal() --}}
+            <input type="hidden" id="incapacidad_id" name="incapacidad_id">
+            <div class="campo" style="margin-top:1rem">
+                {{-- Mismas extensiones que acepta el legacy --}}
+                <label for="archivo_incapacidad" class="detail-label">Seleccionar Archivo (PDF, DOC, DOCX, TXT)</label>
+                <input type="file" id="archivo_incapacidad" name="archivo" accept=".pdf,.doc,.docx,.txt" required>
+            </div>
+            <div style="display:flex; gap:0.75rem; margin-top:1.5rem; justify-content: flex-end;">
+                <button type="button" class="btn-cancelar" onclick="closeIncapacidadModal()">Cancelar</button>
+                <button type="submit" class="btn-primary-modal">Subir Documento</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
 {{-- MODAL: SUBIR ENTREGA FIRMADA DE ASIGNACIÓN (port de procesar_asignaciones.php) --}}
 <div id="asignacionUploadModal" class="modal-overlay">
     <div class="modal-box">
@@ -1946,6 +2022,19 @@
         document.getElementById('archivo_asignacion').value = '';
     }
 
+    
+    // Abre el modal de incapacidad y guarda qué incapacidad (ID) se va a actualizar
+    function openIncapacidadModal(incapacidadId, descripcion) {
+        document.getElementById('incapacidad_id').value = incapacidadId;
+        document.getElementById('incapacidadUploadTitle').textContent = 'Subir Documento ' + descripcion + ' (ID ' + incapacidadId + ')';
+        document.getElementById('incapacidadUploadModal').style.display = 'flex';
+    }
+
+    // Cierra el modal de incapacidad y limpia el archivo seleccionado
+    function closeIncapacidadModal() {
+        document.getElementById('incapacidadUploadModal').style.display = 'none';
+        document.getElementById('archivo_incapacidad').value = '';
+    }
 
 
 
