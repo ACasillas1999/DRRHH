@@ -1084,10 +1084,12 @@
                     <table class="premium-table">
                         <thead>
                             <tr>
-                                <th>N° Emp</th>
+                                {{-- Mismas 7 columnas que el legacy (Resumen_Vacaciones.php) --}}
+                                <th>Número de Empleado</th>
                                 <th>Nombre Completo</th>
                                 <th>Aniversario Laboral</th>
                                 <th>Física</th>
+                                <th>Fiscal</th>
                                 <th>Saldo Inicial</th>
                                 <th>Saldo Actual</th>
                             </tr>
@@ -1098,6 +1100,8 @@
                                 <td class="font-semibold">{{ $empleado->Nombre_Completo }}</td>
                                 <td>{{ $primeraFecha->Fecha_Ingreso ?? '—' }}</td>
                                 <td>{{ $laboral->Fisica ?: '—' }}</td>
+                                {{-- "Fiscal" en el legacy es la razón social (laborales_empleado.Nomeclatura) --}}
+                                <td>{{ $laboral->Nomeclatura ?: '—' }}</td>
                                 <td><strong>{{ $laboral->Dias_Vacaciones_Iniciales ?? '0' }}</strong></td>
                                 <td><strong style="color: var(--primary);">{{ $laboral->Dias_Vacaciones_Disponibles ?? '0' }}</strong></td>
                             </tr>
@@ -1259,27 +1263,33 @@
                     <table class="premium-table">
                         <thead>
                             <tr>
-                                <th>Tipo de Movimiento</th>
-                                <th>Fecha</th>
-                                <th>Documento</th>
+                                {{-- Mismas 4 columnas que el legacy (Detalles_Empleado.php, "Documentos IMSS") --}}
+                                <th>ID</th>
+                                <th>N°</th>
+                                <th>Tipo de Documento</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($documentosImss as $doc)
                                 <tr>
-                                    <td class="font-semibold">{{ $doc->tipo ?: '—' }}</td>
-                                    <td>{{ $doc->fecha ?? $doc->fecha_subida ?? '—' }}</td>
+                                    <td>{{ $doc->id }}</td>
+                                    <td>{{ $doc->n_empleado }}</td>
+                                    <td class="font-semibold">{{ $doc->tipo }}</td>
                                     <td>
                                         @if($doc->ruta_documento)
-                                            <a class="doc-link" href="{{ $doc->ruta_documento }}" target="_blank">Ver documento</a>
+                                            {{-- LegacyFile::url convierte la ruta relativa del legacy (uploads/Docs_Altas_Bajas/...) en una URL válida --}}
+                                            <a class="doc-link" href="{{ \App\Support\LegacyFile::url($doc->ruta_documento) }}" target="_blank">Ver documento</a>
                                         @else
-                                            <span style="color: var(--text-muted);">Sin documento</span>
+                                            {{-- Mismo texto que el legacy --}}
+                                            <span style="color: var(--text-muted);">Documento no disponible</span>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="vacio-row">No se encontraron documentos IMSS.</td>
+                                    {{-- Mismo texto que el legacy; 4 columnas --}}
+                                    <td colspan="4" class="vacio-row">No se encontraron documentos.</td>
                                 </tr>
                             @endforelse
                         </tbody>
