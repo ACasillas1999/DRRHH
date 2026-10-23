@@ -107,7 +107,8 @@ class EmpleadoController extends Controller
         $documentosImss = DocumentoImss::where('n_empleado', $n_empleado)->get();
         // Igual que el legacy: JOIN con productos (has) para excluir asignaciones sin producto, y orden por ID (el legacy no usa ORDER BY)
         $asignaciones = AsignacionProducto::with('producto')->has('producto')->where('N_Empleado', $n_empleado)->orderBy('ID')->get();
-        $pagos = PagoMensual::with('producto')->where('N_Empleado', $n_empleado)->orderByDesc('Fecha_Inicio')->get();
+        // Orden por ID: el legacy no usa ORDER BY y MySQL regresa los pagos en orden de inserción (pago 1, 2, 3...)
+        $pagos = PagoMensual::with('producto')->where('N_Empleado', $n_empleado)->orderBy('ID')->get();
         $vacacionesHistorial = Vacacion::where('N_Empleado', $n_empleado)->get();
         $incapacidades = Incapacidad::where('N_Empleado', $n_empleado)->get();
         $documentosGenerados = DocumentoGenerado::where('N_Empleado', $n_empleado)->orderByDesc('Fecha_Subida')->get();

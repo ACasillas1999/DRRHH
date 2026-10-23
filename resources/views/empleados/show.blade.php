@@ -1365,25 +1365,41 @@
                     <table class="premium-table">
                         <thead>
                             <tr>
-                                <th>Producto</th>
-                                <th>Monto</th>
-                                <th>Fecha Inicio</th>
+                                {{-- Mismas 9 columnas que el legacy (Detalles_Empleado.php, "Historial de Pagos") --}}
+                                <th>N° Empleado</th>
+                                <th>Nombre Completo</th>
+                                <th>ID Producto</th>
+                                <th>Nombre Producto</th>
+                                <th>Asignación ID</th>
+                                <th>N° Pago</th>
+                                <th>Monto Quincenal</th>
+                                <th>Fecha de Cobro</th>
                                 <th>Estatus</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($pagos as $pago)
                                 <tr>
-                                    <td class="font-semibold">{{ $pago->producto->Nombre ?? '—' }}</td>
-                                    <td>{{ is_numeric($pago->Monto_Mensual) ? '$' . number_format($pago->Monto_Mensual, 2) : ($pago->Monto_Mensual ?: '—') }}</td>
-                                    <td>{{ $pago->Fecha_Inicio ?: '—' }}</td>
-                                    <td>{{ $pago->estatus ?: '—' }}</td>
+                                    <td>{{ $pago->N_Empleado }}</td>
+                                    <td>{{ $empleado->Nombre_Completo }}</td>
+                                    <td>{{ $pago->ID_Producto }}</td>
+                                    {{-- LEFT JOIN en el legacy: si el producto ya no existe, el nombre sale vacío --}}
+                                    <td class="font-semibold">{{ $pago->producto->Nombre ?? '' }}</td>
+                                    <td>{{ $pago->Asignacion_ID }}</td>
+                                    <td>{{ $pago->Numero_Pago }}</td>
+                                    {{-- Monto con el formato de dinero de DRRHH (el legacy lo muestra crudo: 96.00) --}}
+                                    <td>{{ is_numeric($pago->Monto_Mensual) ? '$' . number_format($pago->Monto_Mensual, 2) : $pago->Monto_Mensual }}</td>
+                                    {{-- "Fecha de Cobro" en el legacy es la columna Fecha_Inicio --}}
+                                    <td>{{ $pago->Fecha_Inicio }}</td>
+                                    <td>{{ $pago->estatus }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="vacio-row">No hay pagos registrados.</td>
+                                    {{-- 9 columnas como en el legacy --}}
+                                    <td colspan="9" class="vacio-row">No hay pagos registrados.</td>
                                 </tr>
                             @endforelse
+
                         </tbody>
                     </table>
                 </div>
