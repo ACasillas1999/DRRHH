@@ -1063,7 +1063,8 @@
                                         <button type="button" class="action-btn action-btn-generate" onclick="openDocumentPreview('ficha_nomina', 'Ficha Nómina', '{{ route('empleados.documentos.fichaNomina', $empleado->N_Empleado) }}')">
                                             Generar Ficha
                                         </button>
-                                        <button type="button" class="action-btn action-btn-upload" onclick="openUploadModal('Ficha Nomina')">
+                                        {{-- Nombre_Documento exacto del legacy (lo busca con WHERE Nombre_Documento = '...') --}}
+                                        <button type="button" class="action-btn action-btn-upload" onclick="openUploadModal('Ficha Nominas')">
                                             Subir Documento
                                         </button>
                                     </div>
@@ -1072,6 +1073,8 @@
                         </tbody>
                     </table>
                 </div>
+                {{-- Fichas subidas, como en el legacy (el legacy dice "asignaciones" aquí por un copy-paste) --}}
+                @include('empleados.partials.documentos-subidos', ['documentos' => $documentosGenerados->where('Nombre_Documento', 'Ficha Nominas'), 'mensajeVacio' => 'No hay asignaciones disponibles'])
             </div>
 
             {{-- Vacaciones --}}
@@ -1497,6 +1500,8 @@
                         </tr>
                     </tbody>
                 </table>
+                {{-- Cartas oferta subidas, como en el legacy --}}
+                @include('empleados.partials.documentos-subidos', ['documentos' => $documentosGenerados->where('Nombre_Documento', 'Carta Oferta'), 'mensajeVacio' => 'No hay cartas disponibles'])
             </div>
 
             <div class="detail-card">
@@ -1510,7 +1515,8 @@
                                     <button type="button" class="action-btn action-btn-generate" onclick="openDocumentPreview('carta_confidencialidad', 'Carta de Confidencialidad', '{{ route('empleados.documentos.cartaConfidencialidad', $empleado->N_Empleado) }}')">
                                         Generar Carta
                                     </button>
-                                    <button type="button" class="action-btn action-btn-upload" onclick="openUploadModal('Carta Confidencialidad')">
+                                    {{-- Nombre_Documento exacto del legacy (lo busca con WHERE Nombre_Documento = '...') --}}
+                                    <button type="button" class="action-btn action-btn-upload" onclick="openUploadModal('Carta_Confidencialidad')">
                                         Subir Documento
                                     </button>
                                 </div>
@@ -1518,6 +1524,8 @@
                         </tr>
                     </tbody>
                 </table>
+                {{-- Cartas de confidencialidad subidas, como en el legacy --}}
+                @include('empleados.partials.documentos-subidos', ['documentos' => $documentosGenerados->where('Nombre_Documento', 'Carta_Confidencialidad'), 'mensajeVacio' => 'No hay cartas disponibles'])
             </div>
 
             <div class="detail-card">
@@ -1531,7 +1539,8 @@
                                     <button type="button" class="action-btn action-btn-generate" onclick="openDocumentPreview('politica_puntualidad', 'Reglamento de Puntualidad y Asistencia', '{{ route('empleados.documentos.politicaPuntualidad', $empleado->N_Empleado) }}')">
                                         Generar Documento
                                     </button>
-                                    <button type="button" class="action-btn action-btn-upload" onclick="openUploadModal('Politica Puntualidad')">
+                                    {{-- Nombre_Documento exacto del legacy (lo busca con WHERE Nombre_Documento = '...') --}}
+                                    <button type="button" class="action-btn action-btn-upload" onclick="openUploadModal('Politica_Punt_Y_Asist')">
                                         Subir Documento
                                     </button>
                                 </div>
@@ -1539,6 +1548,8 @@
                         </tr>
                     </tbody>
                 </table>
+                {{-- Políticas subidas, como en el legacy (mismo texto "cartas" que usa el legacy) --}}
+                @include('empleados.partials.documentos-subidos', ['documentos' => $documentosGenerados->where('Nombre_Documento', 'Politica_Punt_Y_Asist'), 'mensajeVacio' => 'No hay cartas disponibles'])
             </div>
 
             {{-- Contratos del Empleado --}}
@@ -1619,41 +1630,30 @@
                 
             </div>
 
-            {{-- Documentos subidos (Ficha nómina / Folio baja adicional) --}}
+            {{-- Folio Baja: igual que la sección del legacy (Generar Folio + Subir Documento + folios subidos).
+                 Reemplaza a "Documentos Adicionales", que no existía en el legacy. --}}
             <div class="detail-card">
-                <h2>Documentos Adicionales Generados / Subidos</h2>
-                <div class="table-wrap" style="margin-bottom: 1.25rem;">
-                    <table class="premium-table">
-                        <thead>
-                            <tr>
-                                <th>Nombre del Documento</th>
-                                <th>Fecha de Subida</th>
-                                <th>Enlace</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($documentosGenerados as $dg)
-                                <tr>
-                                    <td class="font-semibold">{{ $dg->Nombre_Documento }}</td>
-                                    <td>{{ $dg->Fecha_Subida }}</td>
-                                    <td>
-                                        <a class="doc-link" href="{{ $dg->Ruta_Documento }}" target="_blank">Ver documento</a>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="vacio-row">No hay documentos adicionales subidos.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <div style="margin-top: 1rem; display: flex;">
-                    <button type="button" class="action-btn action-btn-generate" style="justify-content: center; padding: 0.6rem 1.2rem; font-weight: 600; font-size: 0.8rem;" onclick="openDocumentPreview('folio_baja', 'Folio de Baja / Solicitud Finiquito', '{{ route('empleados.documentos.folioBaja', $empleado->N_Empleado) }}')">
-                        Generar Folio de Baja
-                    </button>
-                </div>
+                <h2>Folio Baja</h2>
+                <table class="premium-table">
+                    <tbody>
+                        <tr>
+                            <td class="font-semibold">Folio Baja</td>
+                            <td>
+                                <div class="action-btn-group">
+                                    <button type="button" class="action-btn action-btn-generate" onclick="openDocumentPreview('folio_baja', 'Folio de Baja / Solicitud Finiquito', '{{ route('empleados.documentos.folioBaja', $empleado->N_Empleado) }}')">
+                                        Generar Folio
+                                    </button>
+                                    {{-- Nombre_Documento exacto del legacy (lo busca con WHERE Nombre_Documento = '...') --}}
+                                    <button type="button" class="action-btn action-btn-upload" onclick="openUploadModal('Folio Baja')">
+                                        Subir Documento
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                {{-- Folios subidos, como en el legacy --}}
+                @include('empleados.partials.documentos-subidos', ['documentos' => $documentosGenerados->where('Nombre_Documento', 'Folio Baja'), 'mensajeVacio' => 'No hay folios disponibles'])
             </div>
 
         </div>

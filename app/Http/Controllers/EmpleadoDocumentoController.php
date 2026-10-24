@@ -404,34 +404,56 @@ class EmpleadoDocumentoController extends Controller
         return redirect()->route('empleados.show', $n_empleado)->with('status', 'El archivo se cargó correctamente.');
     }
 
-
+    /**
+     * Port de upload_documento_ficha_nomina.php / carta_oferta / carta_Confidencialidad / Pol_Punt_Asist / baja
+     * (los 5 son idénticos): guarda en la misma carpeta, con el mismo nombre y formato de ruta que el legacy.
+     */
     public function storeUpload(Request $request, string $n_empleado): RedirectResponse
     {
+        // El legacy no limita extensión ni tamaño (solo el límite de PHP)
         $data = $request->validate([
             'nombre_documento' => ['required', 'string', 'max:150'],
-            'documento' => ['required', 'file', 'max:10240'],
+            'documento' => ['required', 'file'],
         ]);
 
+        // Igual que el legacy: un solo documento por nombre y empleado (SELECT COUNT(*) ... WHERE N_Empleado = ? AND Nombre_Documento = ?)
         $yaExiste = DocumentoGenerado::where('N_Empleado', $n_empleado)
             ->where('Nombre_Documento', $data['nombre_documento'])
             ->exists();
 
+        // Mismo mensaje que el alert() del legacy
         if ($yaExiste) {
-            return back()->withErrors(['documento' => 'Ya existe un documento con ese nombre para este empleado.']);
+            return back()->withErrors(['documento' => '¡Error! Ya existe un documento con el mismo nombre para este empleado.']);
         }
 
+        // Carpeta física del legacy: C:/xampp/htdocs/RH/uploads/documentos (se crea si no existe, como en el legacy)
+        $carpeta = rtrim(config('legacy.path'), '/') . '/uploads/documentos';
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0777, true);
+        }
+
+        // Mismo nombre que el legacy: el nombre original; si ya existe, nombre_1.ext, nombre_2.ext...
         $archivo = $request->file('documento');
-        $nombreArchivo = $n_empleado . '_' . \Illuminate\Support\Str::slug($data['nombre_documento']) . '_' . time() . '.' . $archivo->getClientOriginalExtension();
-        $archivo->move(public_path('uploads/documentos_generados'), $nombreArchivo);
+        $nombreOriginal = basename($archivo->getClientOriginalName());
+        $nombreArchivo = $nombreOriginal;
+        $i = 1;
+        while (file_exists($carpeta . '/' . $nombreArchivo)) {
+            $nombreArchivo = pathinfo($nombreOriginal, PATHINFO_FILENAME) . "_{$i}." . pathinfo($nombreOriginal, PATHINFO_EXTENSION);
+            $i++;
+        }
+        $archivo->move($carpeta, $nombreArchivo);
 
         DocumentoGenerado::create([
             'N_Empleado' => $n_empleado,
             'Nombre_Documento' => $data['nombre_documento'],
-            'Ruta_Documento' => '/uploads/documentos_generados/' . $nombreArchivo,
-            'Fecha_Subida' => now(),
+            // Ruta relativa tal cual la guarda el legacy ("uploads/documentos/...")
+            'Ruta_Documento' => 'uploads/documentos/' . $nombreArchivo,
+            // Hora de México como el legacy (date_default_timezone_set('America/Mexico_City')); la app sigue en UTC
+            'Fecha_Subida' => now('America/Mexico_City')->format('Y-m-d H:i:s'),
         ]);
 
-        return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento subido correctamente.');
+        // Mismo mensaje de éxito que el alert() del legacy
+        return redirect()->route('empleados.show', $n_empleado)->with('status', '¡Documento Subido con Éxito!');
     }
 
     public function subirPersonal(Request $request, string $n_empleado): RedirectResponse
