@@ -49,7 +49,9 @@ class EmpleadoPersonalesController extends Controller
             'Usuario_ID' => auth()->id(),
             'N_Empleado' => $n_empleado,
             'Cambio' => "Actualización de datos Personales del empleado con ID: {$n_empleado}",
-            'Fecha_Hora' => now(),
+            // Hora de México como el legacy (su date() usa date.timezone=America/Mexico_City); la app sigue en UTC
+            'Fecha_Hora' => now('America/Mexico_City'),
+
         ]);
 
         return redirect()->route('empleados.show', $n_empleado)->with('status', 'Datos personales actualizados correctamente.');

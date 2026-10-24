@@ -49,13 +49,23 @@
                             <option value="">Seleccione</option>
                             <option value="Masculino" @selected(old('Sexo', $empleado->Sexo)=='Masculino')>Masculino</option>
                             <option value="Femenino" @selected(old('Sexo', $empleado->Sexo)=='Femenino')>Femenino</option>
+                            {{-- "Otro" existe en el legacy (Actualizar_Personales.php) --}}
+                            <option value="Otro" @selected(old('Sexo', $empleado->Sexo)=='Otro')>Otro</option>
+
                         </select>
                     </div>
                     <div class="campo"><label>Fecha Nacimiento</label><input type="date" name="Fecha_Nacimiento" value="{{ old('Fecha_Nacimiento', $empleado->Fecha_Nacimiento) }}"></div>
                     <div class="campo"><label>Ciudad</label><input type="text" name="Ciudad" value="{{ old('Ciudad', $empleado->Ciudad) }}"></div>
                     <div class="campo"><label>Estado</label><input type="text" name="Estado" value="{{ old('Estado', $empleado->Estado) }}"></div>
                     <div class="campo"><label>Domicilio</label><input type="text" name="Domicilio" value="{{ old('Domicilio', $empleado->Domicilio) }}"></div>
-                    <div class="campo"><label>Estado Civil</label><input type="text" name="Estado_Civil" value="{{ old('Estado_Civil', $empleado->Estado_Civil) }}"></div>
+                    <div class="campo"><label>Estado Civil</label>
+                        {{-- Mismo select y mismas 5 opciones que el legacy (Actualizar_Personales.php) --}}
+                        <select name="Estado_Civil">
+                            @foreach(['Soltero', 'Casado', 'Divorciado', 'Viudo', 'Union_Libre'] as $ec)
+                                <option value="{{ $ec }}" @selected(old('Estado_Civil', $empleado->Estado_Civil) == $ec)>{{ $ec }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="campo"><label>Teléfono</label><input type="text" name="Telefono" value="{{ old('Telefono', $empleado->Telefono) }}"></div>
                     <div class="campo"><label>Celular</label><input type="text" name="Celular" value="{{ old('Celular', $empleado->Celular) }}"></div>
                     <div class="campo"><label>Correo Electrónico</label><input type="email" name="Correo_Electronico" value="{{ old('Correo_Electronico', $empleado->Correo_Electronico) }}"></div>
