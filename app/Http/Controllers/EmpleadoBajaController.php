@@ -18,7 +18,9 @@ class EmpleadoBajaController extends Controller
             'fecha_baja' => ['required', 'date'],
             'motivo_baja' => ['required', 'string', 'max:255'],
             'recontratable' => ['nullable', 'string', 'max:10'],
-            'comentarios' => ['nullable', 'string', 'max:500'],
+             // Obligatorio como en el legacy (el textarea tiene required y maxlength="500")
+            'comentarios' => ['required', 'string', 'max:500'],
+
         ]);
 
         $laboral = LaboralEmpleado::where('N_Empleado', $n_empleado)->firstOrFail();
@@ -37,7 +39,9 @@ class EmpleadoBajaController extends Controller
                 'Usuario_ID' => auth()->id(),
                 'N_Empleado' => $n_empleado,
                 'Cambio' => "Se dio de BAJA a Empleado con ID: {$n_empleado}",
-                'Fecha_Hora' => now(),
+                // Hora de México como el legacy (su date() usa date.timezone=America/Mexico_City); la app sigue en UTC
+                'Fecha_Hora' => now('America/Mexico_City'),
+
             ]);
 
             foreach (['RENUNCIA', 'ENCUESTA_DE_SALIDA', 'RATIFICACIÓN', 'FINIQUITO', 'FOLIO_BAJA'] as $nombreDocumento) {

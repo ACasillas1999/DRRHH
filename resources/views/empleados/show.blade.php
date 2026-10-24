@@ -1688,7 +1688,8 @@
                 </div>
                 <div class="campo" style="margin-top:0.75rem">
                     <label for="comentarios" class="detail-label">Comentarios</label>
-                    <textarea id="comentarios" name="comentarios" maxlength="500" rows="3" style="width:100%; padding:0.5rem; border-radius:8px; border:1px solid var(--border-color); background-color:var(--bg-page); color:var(--text-main); font-family:inherit; font-size:0.85rem; margin-top:0.25rem;"></textarea>
+                    {{-- Obligatorio como en el legacy --}}
+                    <textarea id="comentarios" name="comentarios" maxlength="500" rows="3" style="width:100%; padding:0.5rem; border-radius:8px; border:1px solid var(--border-color); background-color:var(--bg-page); color:var(--text-main); font-family:inherit; font-size:0.85rem; margin-top:0.25rem;" required></textarea>
                 </div>
                 <div class="campo" style="margin-top:0.75rem">
                     <label for="recontratable" class="detail-label">¿Es recontratable?</label>
