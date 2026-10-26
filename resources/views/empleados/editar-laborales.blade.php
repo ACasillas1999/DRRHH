@@ -41,32 +41,52 @@
             <div class="card">
                 <h2>Datos Laborales</h2>
                 <div class="campos-grid">
-                    <div class="campo"><label>Departamento (fijo)</label><div class="fijo">{{ $laboral->puesto->Departamento ?? '—' }}</div></div>
+                    {{-- Cascada Departamento → Puesto como el legacy. El select de departamento no se envía (sin name);
+                         solo sirve para filtrar los puestos. Se guarda el ID del puesto. --}}
+                    <div class="campo"><label>Departamento *</label>
+                        <select id="Departamento" required>
+                            <option value="">Seleccione un Departamento</option>
+                            @foreach($departamentos as $d)
+                                <option value="{{ $d }}" @selected(($laboral->puesto->Departamento ?? '') === $d)>{{ $d }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="campo"><label>Reclutador (fijo)</label><div class="fijo">{{ $laboral->Reclutador ?: '—' }}</div></div>
 
                     <div class="campo"><label>Puesto *</label>
-                        <select name="ID_Puesto" required>
+                        <select name="ID_Puesto" id="ID_Puesto" required>
                             @foreach($puestos as $p)
-                                <option value="{{ $p->ID }}" @selected(old('ID_Puesto', $laboral->ID_Puesto)==$p->ID)>{{ $p->Nombre_Puesto }} ({{ $p->Departamento }})</option>
+                                <option value="{{ $p->ID }}" data-departamento="{{ $p->Departamento }}" @selected(old('ID_Puesto', $laboral->ID_Puesto)==$p->ID)>{{ $p->Nombre_Puesto }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="campo"><label>Nomenclatura (Razón Social)</label>
-                        <select name="Nomeclatura">
-                            <option value="">Seleccione</option>
-                            @foreach($razonesSociales as $rs)
-                                <option value="{{ $rs->Nomenclatura }}" @selected(old('Nomeclatura', $laboral->Nomeclatura)==$rs->Nomenclatura)>{{ $rs->Nomenclatura }}</option>
+                    <div class="campo"><label>Nomenclatura (Razón Social) *</label>
+                        {{-- Misma lista fija que el legacy (Actualizar_Laborales.php); la tabla razones_sociales no tiene CODI y guarda "ASCROD " con espacio --}}
+                        <select name="Nomeclatura" required>
+                            <option value="">Seleccione una Sucursal</option>
+                            @foreach(['DIMEGSA', 'DEASA', 'AIESA', 'SEGSA', 'FESA', 'TAPATIA', 'GABSA', 'ILUMINACION', 'VALLARTA', 'QUERETARO', 'CODI', 'ASCROD'] as $rs)
+                                <option value="{{ $rs }}" @selected(old('Nomeclatura', $laboral->Nomeclatura) === $rs)>{{ $rs }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="campo"><label>Sucursal Física</label><input type="text" name="Fisica" value="{{ old('Fisica', $laboral->Fisica) }}"></div>
+                    <div class="campo"><label>Sucursal Física *</label>
+                        {{-- Select con la tabla Ubicaciones, como el legacy (get_ubicaciones.php) --}}
+                        <select name="Fisica" required>
+                            <option value="">Seleccione una Sucursal</option>
+                            @foreach($ubicaciones as $u)
+                                <option value="{{ $u }}" @selected(old('Fisica', $laboral->Fisica) === $u)>{{ $u }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="campo"><label>Horario</label><input type="text" name="Horario" value="{{ old('Horario', $laboral->Horario) }}"></div>
-                    <div class="campo"><label>Salario Diario Bruto</label><input type="number" step="0.01" name="Salario_Diario" value="{{ old('Salario_Diario', $laboral->Salario_Diario) }}"></div>
+                    <div class="campo"><label>Salario Diario Bruto</label><input type="number" step="0.01" id="Salario_Diario" name="Salario_Diario" value="{{ old('Salario_Diario', $laboral->Salario_Diario) }}"></div>
                     {{-- type="text" en Sueldo, Sueldo Neto, Comisión y KPI como en el legacy: guardan texto ("N/A", "9000 LIBRES");
                          con type="number" el navegador los vaciaba y se guardaban como 0 --}}
-                    <div class="campo"><label>Sueldo Bruto</label><input type="text" name="Sueldo" value="{{ old('Sueldo', $laboral->Sueldo) }}"></div>
-                    <div class="campo"><label>Salario Diario Neto</label><input type="number" step="0.01" name="Salario_Diario_Neto" value="{{ old('Salario_Diario_Neto', $laboral->Salario_Diario_Neto) }}"></div>
-                    <div class="campo"><label>Sueldo Neto</label><input type="text" name="Sueldo_Neto" value="{{ old('Sueldo_Neto', $laboral->Sueldo_Neto) }}"></div>
+                    {{-- Sueldo Bruto de solo lectura: se calcula como Salario Diario × 30, igual que el legacy --}}
+                    <div class="campo"><label>Sueldo Bruto</label><input type="text" id="Sueldo" name="Sueldo" value="{{ old('Sueldo', $laboral->Sueldo) }}" readonly></div>
+                    {{-- Salario Diario Neto de solo lectura: se calcula como Sueldo Neto ÷ 30, igual que el legacy --}}
+                    <div class="campo"><label>Salario Diario Neto</label><input type="number" step="0.01" id="Salario_Diario_Neto" name="Salario_Diario_Neto" value="{{ old('Salario_Diario_Neto', $laboral->Salario_Diario_Neto) }}" readonly></div>
+                    <div class="campo"><label>Sueldo Neto</label><input type="text" id="Sueldo_Neto" name="Sueldo_Neto" value="{{ old('Sueldo_Neto', $laboral->Sueldo_Neto) }}"></div>
                     <div class="campo"><label>Compensación</label><input type="text" name="Hora_Comida" value="{{ old('Hora_Comida', $laboral->Hora_Comida) }}"></div>
                     <div class="campo"><label>Efectivo</label><input type="number" step="0.01" name="Efectivo" value="{{ old('Efectivo', $laboral->Efectivo) }}"></div>
                     <div class="campo"><label>Comisión</label><input type="text" name="Comision" value="{{ old('Comision', $laboral->Comision) }}"></div>
@@ -84,3 +104,39 @@
         </form>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Cascada Departamento → Puesto (en el legacy, obtener_puestos_actualizar.php vía AJAX)
+    const depto = document.getElementById('Departamento');
+    const puesto = document.getElementById('ID_Puesto');
+    const opciones = Array.from(puesto.querySelectorAll('option[data-departamento]'));
+
+    function filtrarPuestos() {
+        const seleccionado = puesto.value;
+        puesto.innerHTML = '';
+        puesto.add(new Option('Seleccione un Puesto', ''));
+        opciones.filter(o => o.dataset.departamento === depto.value).forEach(o => puesto.add(o));
+        // Conserva el puesto actual si pertenece al departamento elegido
+        puesto.value = opciones.some(o => o.value === seleccionado && o.dataset.departamento === depto.value) ? seleccionado : '';
+    }
+    depto.addEventListener('change', filtrarPuestos);
+    filtrarPuestos();
+
+    // Sueldo Bruto = Salario Diario × 30 (mismo cálculo y 2 decimales que el legacy)
+    const salarioDiario = document.getElementById('Salario_Diario');
+    const sueldo = document.getElementById('Sueldo');
+    salarioDiario.addEventListener('input', () => {
+        sueldo.value = ((parseFloat(salarioDiario.value) || 0) * 30).toFixed(2);
+    });
+
+    // Salario Diario Neto = Sueldo Neto ÷ 30 (mismo cálculo que el legacy)
+    const sueldoNeto = document.getElementById('Sueldo_Neto');
+    const salarioDiarioNeto = document.getElementById('Salario_Diario_Neto');
+    sueldoNeto.addEventListener('input', () => {
+        salarioDiarioNeto.value = ((parseFloat(sueldoNeto.value) || 0) / 30).toFixed(2);
+    });
+});
+</script>
+@endpush

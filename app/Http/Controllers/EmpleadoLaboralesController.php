@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\HistorialCambio;
 use App\Models\LaboralEmpleado;
 use App\Models\Puesto;
-use App\Models\RazonSocial;
+use App\Models\Ubicacion;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -15,9 +15,13 @@ class EmpleadoLaboralesController extends Controller
     {
         $laboral = LaboralEmpleado::with('puesto')->where('N_Empleado', $n_empleado)->firstOrFail();
         $puestos = Puesto::orderBy('Nombre_Puesto')->get(['ID', 'Nombre_Puesto', 'Departamento']);
-        $razonesSociales = RazonSocial::orderBy('Nomenclatura')->get(['Nomenclatura']);
+        // Departamentos para la cascada Departamento → Puesto (legacy: SELECT DISTINCT Departamento FROM puestos)
+        $departamentos = Puesto::query()->whereNotNull('Departamento')->where('Departamento', '!=', '')->distinct()->orderBy('Departamento')->pluck('Departamento');
+        // Sucursales físicas (legacy: get_ubicaciones.php → SELECT ID, Ubicacion FROM Ubicaciones)
+        $ubicaciones = Ubicacion::query()->pluck('Ubicacion');
+        // La razón social ya no sale de la tabla razones_sociales: la vista usa la lista fija del legacy
 
-        return view('empleados.editar-laborales', compact('laboral', 'puestos', 'razonesSociales'));
+        return view('empleados.editar-laborales', compact('laboral', 'puestos', 'departamentos', 'ubicaciones'));
     }
 
     public function update(Request $request, string $n_empleado): RedirectResponse
@@ -26,8 +30,9 @@ class EmpleadoLaboralesController extends Controller
 
         $data = $request->validate([
             'ID_Puesto' => ['required', 'exists:puestos,ID'],
-            'Nomeclatura' => ['nullable', 'string', 'max:100'],
-            'Fisica' => ['nullable', 'string', 'max:100'],
+            // Obligatorios como en el legacy (los <select> tienen required)
+            'Nomeclatura' => ['required', 'string', 'max:100'],
+            'Fisica' => ['required', 'string', 'max:100'],
             'Salario_Diario' => ['nullable', 'numeric'],
             // Texto libre como en el legacy (bind "s"): hay valores como "9000 LIBRES", "N/A", "$500.00 A MES VENCIDO"
             'Sueldo' => ['nullable', 'string', 'max:255'],
