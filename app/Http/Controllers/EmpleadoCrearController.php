@@ -10,8 +10,8 @@ use App\Models\HistorialCambio;
 use App\Models\LaboralEmpleado;
 use App\Models\Personal;
 use App\Models\Puesto;
-use App\Models\RazonSocial;
 use App\Models\RutaDocumento;
+use App\Models\Ubicacion;
 use App\Models\Usuario;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -40,9 +40,13 @@ class EmpleadoCrearController extends Controller
     {
         $puestos = Puesto::orderBy('Nombre_Puesto')->get(['ID', 'Nombre_Puesto', 'Departamento']);
         $reclutadores = Usuario::whereIn('Rol', ['RH', 'Admin'])->orderBy('Nombre')->get(['ID', 'Nombre']);
-        $razonesSociales = RazonSocial::orderBy('Nomenclatura')->get(['Nomenclatura']);
+        // Departamentos para la cascada Departamento → Puesto (legacy: SELECT DISTINCT Departamento FROM puestos)
+        $departamentos = Puesto::query()->whereNotNull('Departamento')->where('Departamento', '!=', '')->distinct()->orderBy('Departamento')->pluck('Departamento');
+        // Sucursales físicas (legacy: get_ubicaciones.php → SELECT ID, Ubicacion FROM Ubicaciones)
+        $ubicaciones = Ubicacion::query()->pluck('Ubicacion');
+        // La razón social ya no sale de la tabla razones_sociales: la vista usa la lista fija de Agregar_empleado.php
 
-        return view('empleados.crear', compact('puestos', 'reclutadores', 'razonesSociales'));
+        return view('empleados.crear', compact('puestos', 'reclutadores', 'departamentos', 'ubicaciones'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -71,20 +75,24 @@ class EmpleadoCrearController extends Controller
             'F_NAC_B' => ['nullable', 'date'],
 
             'ID_Puesto' => ['required', 'exists:puestos,ID'],
-            'Nomeclatura' => ['nullable', 'string', 'max:100'],
-            'Fisica' => ['nullable', 'string', 'max:100'],
-            'Hora_Comida' => ['nullable', 'string', 'max:50'],
-            'Efectivo' => ['nullable', 'string', 'max:50'],
-            'Salario_Diario' => ['nullable', 'numeric'],
-            'Sueldo' => ['nullable', 'numeric'],
+            // Obligatorios como en el legacy (Agregar_empleado.php: required en cada campo)
+            'Nomeclatura' => ['required', 'string', 'max:100'],
+            'Fisica' => ['required', 'string', 'max:100'],
+            // Compensación y Efectivo son <input type="number" required> en el legacy
+            'Hora_Comida' => ['required', 'numeric'],
+            'Efectivo' => ['required', 'numeric'],
+            'Salario_Diario' => ['required', 'numeric'],
+            // Sueldo y Sueldo Neto son texto en el legacy (hay valores como "9000 LIBRES"); Sueldo se calcula ×30
+            'Sueldo' => ['nullable', 'string', 'max:255'],
             'Salario_Diario_Neto' => ['nullable', 'numeric'],
-            'Sueldo_Neto' => ['nullable', 'numeric'],
-            'Horario' => ['nullable', 'string', 'max:100'],
-            'KPI' => ['nullable', 'string', 'max:50'],
-            'Comision' => ['nullable', 'string', 'max:50'],
-            'Reclutador' => ['nullable', 'string', 'max:150'],
-            'Asesor_Ingreso' => ['nullable', 'string', 'max:150'],
-            'Entrevista' => ['nullable', 'string', 'max:150'],
+            'Sueldo_Neto' => ['required', 'string', 'max:255'],
+            'Horario' => ['required', 'string', 'max:100'],
+            // KPI y Comisión: texto opcional; hasta 255 porque hay valores largos ("$500 PESOS LOS DIAS 15 A MES VENCIDO...")
+            'KPI' => ['nullable', 'string', 'max:255'],
+            'Comision' => ['nullable', 'string', 'max:255'],
+            'Reclutador' => ['required', 'string', 'max:150'],
+            'Asesor_Ingreso' => ['required', 'string', 'max:150'],
+            'Entrevista' => ['required', 'string', 'max:150'],
 
             'fecha_ingreso' => ['required', 'date'],
             'Tipo_de_Contrato' => ['required', 'in:Determinado,Indeterminado'],
