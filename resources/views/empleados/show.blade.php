@@ -969,6 +969,20 @@
                                                             <circle cx="12" cy="12" r="3"></circle>
                                                         </svg>
                                                     </a>
+                                                    {{-- Borrar el archivo (como el botón "Borrar" de Mas_Documentos), con la misma confirmación del legacy --}}
+                                                    <form method="POST" action="{{ route('empleados.documentos.borrarPersonal', [$empleado->N_Empleado, $doc->ID]) }}" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas borrar este documento? Esta acción no se puede deshacer.')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="action-btn" style="color:#ef4444;" title="Borrar documento">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                                                                <path d="M10 11v6M14 11v6"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+
+
                                                 @endif
                                                 <button type="button" class="action-btn action-btn-upload" onclick="openExpedienteUploadModal('personal', {{ $doc->ID }}, '{{ $doc->Tipo_Documento }}')" title="Subir archivo">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1024,6 +1038,21 @@
                                                             <circle cx="12" cy="12" r="3"></circle>
                                                         </svg>
                                                     </a>
+
+                                                    {{-- Borrar el archivo (como el botón "Borrar" de Doc_Laborales), con la misma confirmación del legacy --}}
+                                                    <form method="POST" action="{{ route('empleados.documentos.borrarLaboral', [$empleado->N_Empleado, $doc->ID]) }}" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas borrar este documento? Esta acción no se puede deshacer.')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="action-btn" style="color:#ef4444;" title="Borrar documento">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                                                                <path d="M10 11v6M14 11v6"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+
+
                                                 @endif
                                                 <button type="button" class="action-btn action-btn-upload" onclick="openExpedienteUploadModal('laboral', {{ $doc->ID }}, '{{ $doc->Tipo_Documento }}')" title="Subir archivo">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

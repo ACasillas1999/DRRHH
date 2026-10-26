@@ -79,7 +79,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/empleados/{n_empleado}/asignaciones/subir', [EmpleadoDocumentoController::class, 'subirAsignacion'])->name('empleados.asignaciones.subir');
         Route::post('/empleados/{n_empleado}/documentos-personales', [EmpleadoDocumentoController::class, 'subirPersonal'])->name('empleados.documentos.subirPersonal');
         Route::post('/empleados/{n_empleado}/documentos-laborales', [EmpleadoDocumentoController::class, 'subirLaboral'])->name('empleados.documentos.subirLaboral');
-
+        // Borrar el archivo de un documento del expediente (port de Mas_Documentos/ y Doc_Laborales/borrar_documento.php)
+        Route::delete('/empleados/{n_empleado}/documentos-personales/{id}', [EmpleadoDocumentoController::class, 'borrarPersonal'])->name('empleados.documentos.borrarPersonal');
+        Route::delete('/empleados/{n_empleado}/documentos-laborales/{id}', [EmpleadoDocumentoController::class, 'borrarLaboral'])->name('empleados.documentos.borrarLaboral');
         Route::get('/altas-imss', [AltaBajaImssController::class, 'index'])->name('altas-imss.index');
         Route::post('/altas-imss/{n_empleado}/fecha-alta', [AltaBajaImssController::class, 'actualizarFechaAlta'])->name('altas-imss.fechaAlta');
         Route::post('/altas-imss/{n_empleado}/fecha-baja', [AltaBajaImssController::class, 'actualizarFechaBaja'])->name('altas-imss.fechaBaja');

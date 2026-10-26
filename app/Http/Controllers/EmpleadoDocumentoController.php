@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HistorialCambio;
 use App\Models\Incapacidad;
 use Illuminate\Support\Facades\DB;
 use App\Models\AsignacionProducto;
@@ -510,6 +511,62 @@ class EmpleadoDocumentoController extends Controller
 
         // Mismo mensaje de éxito que el legacy
         return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento actualizado correctamente.');
+    }
+
+    
+    /**
+     * Port de Mas_Documentos/borrar_documento.php: quita el archivo de un documento personal.
+     */
+    public function borrarPersonal(string $n_empleado, string $id): RedirectResponse
+    {
+        $doc = DocumentoEmpleado::where('N_Empleado', $n_empleado)->where('ID', $id)->firstOrFail();
+
+        return $this->borrarExpediente($n_empleado, $doc, 'personal');
+    }
+
+    /**
+     * Port de Doc_Laborales/borrar_documento.php: quita el archivo de un documento laboral.
+     */
+    public function borrarLaboral(string $n_empleado, string $id): RedirectResponse
+    {
+        $doc = DocumentoLaboral::where('N_Empleado', $n_empleado)->where('ID', $id)->firstOrFail();
+
+        return $this->borrarExpediente($n_empleado, $doc, 'laboral');
+    }
+
+    /**
+     * Lógica común de los borrar_documento.php del legacy: Ruta_Documento = NULL, borra el archivo
+     * y registra en el historial, todo en una transacción (si algo falla se deshace todo).
+     * A diferencia del legacy, la ruta del archivo se toma de la BD y no del navegador.
+     */
+    private function borrarExpediente(string $n_empleado, $doc, string $tipo): RedirectResponse
+    {
+        $ruta = $doc->Ruta_Documento ? str_replace('\\', '/', $doc->Ruta_Documento) : null;
+        // Rutas viejas de DRRHH ("/uploads/...") viven en public/; las del legacy ya son rutas completas (C:/xampp/...)
+        $rutaFisica = ($ruta && str_starts_with($ruta, '/uploads/')) ? public_path(ltrim($ruta, '/')) : $ruta;
+
+        DB::transaction(function () use ($doc, $n_empleado, $tipo, $rutaFisica) {
+            // El legacy hace "= NULL", pero la columna es NOT NULL: MySQL del servidor (no estricto) lo guarda como ''.
+            // Laravel corre en modo estricto y rechazaría el NULL, así que guardamos '' directamente (mismo resultado en BD).
+            $doc->update(['Ruta_Documento' => '']);
+
+
+            // Igual que el legacy: si el archivo existe y no se puede borrar, se deshace todo
+            if ($rutaFisica && file_exists($rutaFisica) && !unlink($rutaFisica)) {
+                throw new \RuntimeException('Error al eliminar el archivo físico.');
+            }
+
+            // Mismo texto que el legacy (con su doble espacio después del ID)
+            HistorialCambio::create([
+                'Usuario_ID' => auth()->id(),
+                'N_Empleado' => $n_empleado,
+                'Cambio' => "Se eliminó un documento {$tipo} - {$doc->ID}  - del Empleado: {$n_empleado}",
+                // Hora de México como el legacy; la app sigue en UTC
+                'Fecha_Hora' => now('America/Mexico_City'),
+            ]);
+        });
+
+        return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento borrado correctamente.');
     }
 
 }
