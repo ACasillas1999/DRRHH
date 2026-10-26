@@ -45,8 +45,9 @@
                     <div class="campo"><label>CURP</label><input type="text" name="CURP" value="{{ old('CURP', $empleado->CURP) }}"></div>
                     <div class="campo"><label>RFC</label><input type="text" name="RFC" value="{{ old('RFC', $empleado->RFC) }}"></div>
                     <div class="campo"><label>Sexo</label>
+                    {{-- Sin opción vacía, igual que el legacy (Actualizar_Personales.php) --}}
                         <select name="Sexo">
-                            <option value="">Seleccione</option>
+                            
                             <option value="Masculino" @selected(old('Sexo', $empleado->Sexo)=='Masculino')>Masculino</option>
                             <option value="Femenino" @selected(old('Sexo', $empleado->Sexo)=='Femenino')>Femenino</option>
                             {{-- "Otro" existe en el legacy (Actualizar_Personales.php) --}}
