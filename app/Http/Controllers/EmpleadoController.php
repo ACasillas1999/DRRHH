@@ -118,7 +118,13 @@ class EmpleadoController extends Controller
         // Orden por ID: el legacy (Manejo_De_Documentos.php) no usa ORDER BY y MySQL los regresa en orden de inserción
         $contratos = \App\Models\Contrato::where('N_Empleado', $n_empleado)->orderBy('ID')->get();
         $documentosEmpleado = $empleado->documentosEmpleado()->orderBy('Tipo_Documento')->get();
-        $documentosLaborales = $empleado->documentosLaborales()->orderBy('Tipo_Documento')->get();
+        // Igual que Doc_Laborales/index.php: LEFT JOIN con machotes para traer la ruta del machote de cada documento.
+        // Solo se agrega machote_ruta; "documentos_laborales.*" evita que el ID de machotes pise el ID del documento.
+        $documentosLaborales = $empleado->documentosLaborales()
+            ->leftJoin('machotes', 'documentos_laborales.Tipo_Documento', '=', 'machotes.Nombre_Machote')
+            ->select('documentos_laborales.*', 'machotes.Ruta_Archivo as machote_ruta')
+            ->orderBy('documentos_laborales.Tipo_Documento')
+            ->get();
 
         $responsable = null;
         if ($laboral->puesto) {
