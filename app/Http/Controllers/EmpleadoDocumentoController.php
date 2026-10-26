@@ -456,45 +456,60 @@ class EmpleadoDocumentoController extends Controller
         return redirect()->route('empleados.show', $n_empleado)->with('status', '¡Documento Subido con Éxito!');
     }
 
+        /**
+     * Port de Mas_Documentos/Subir_Documento.php: documento personal del expediente.
+     */
     public function subirPersonal(Request $request, string $n_empleado): RedirectResponse
     {
-        $request->validate([
-            'documento_id' => ['required', 'integer'],
-            'documento' => ['required', 'file', 'max:10240'],
-        ]);
-
         $doc = DocumentoEmpleado::where('N_Empleado', $n_empleado)->where('ID', $request->input('documento_id'))->firstOrFail();
 
-        $archivo = $request->file('documento');
-        $nombreArchivo = $n_empleado . '_pers_' . \Illuminate\Support\Str::slug($doc->Tipo_Documento) . '_' . time() . '.' . $archivo->getClientOriginalExtension();
-        $archivo->move(public_path('uploads/documentos_empleado'), $nombreArchivo);
-
-        $doc->update([
-            'Ruta_Documento' => '/uploads/documentos_empleado/' . $nombreArchivo,
-            'Fecha_Subida' => now(),
-        ]);
-
-        return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento personal ' . $doc->Tipo_Documento . ' subido correctamente.');
+        return $this->subirExpediente($request, $n_empleado, $doc, 'Mas_Documentos', 'documentos_empleado', 'personal');
     }
 
+    /**
+     * Port de Doc_Laborales/Subir_Documento.php: documento laboral del expediente.
+     */
     public function subirLaboral(Request $request, string $n_empleado): RedirectResponse
+    {
+        $doc = DocumentoLaboral::where('N_Empleado', $n_empleado)->where('ID', $request->input('documento_id'))->firstOrFail();
+
+        return $this->subirExpediente($request, $n_empleado, $doc, 'Doc_Laborales', 'documentos_laborales', 'laboral');
+    }
+
+    /**
+     * Lógica común de los Subir_Documento.php del legacy (Mas_Documentos y Doc_Laborales son iguales):
+     * nombre original, rechaza si ya existe un archivo con ese nombre, y guarda la ruta completa
+     * de Windows como hace el legacy con __DIR__ ("C:\xampp\htdocs\RH\Mas_Documentos/uploads/...").
+     */
+    private function subirExpediente(Request $request, string $n_empleado, $doc, string $subApp, string $carpetaUploads, string $tipo): RedirectResponse
     {
         $request->validate([
             'documento_id' => ['required', 'integer'],
-            'documento' => ['required', 'file', 'max:10240'],
+            'documento' => ['required', 'file'],
         ]);
 
-        $doc = DocumentoLaboral::where('N_Empleado', $n_empleado)->where('ID', $request->input('documento_id'))->firstOrFail();
+        // Carpeta física del legacy: C:/xampp/htdocs/RH/{subApp}/uploads/{carpetaUploads}
+        $carpeta = rtrim(config('legacy.path'), '/') . "/{$subApp}/uploads/{$carpetaUploads}";
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0777, true);
+        }
 
-        $archivo = $request->file('documento');
-        $nombreArchivo = $n_empleado . '_lab_' . \Illuminate\Support\Str::slug($doc->Tipo_Documento) . '_' . time() . '.' . $archivo->getClientOriginalExtension();
-        $archivo->move(public_path('uploads/documentos_laborales'), $nombreArchivo);
+        // Igual que el legacy: nombre original y, si ya existe un archivo con ese nombre, se rechaza (mismo mensaje)
+        $nombreArchivo = basename($request->file('documento')->getClientOriginalName());
+        if (file_exists($carpeta . '/' . $nombreArchivo)) {
+            return back()->withErrors(['documento' => 'Error: Ya existe un documento con el mismo nombre.']);
+        }
+        $request->file('documento')->move($carpeta, $nombreArchivo);
 
         $doc->update([
-            'Ruta_Documento' => '/uploads/documentos_laborales/' . $nombreArchivo,
-            'Fecha_Subida' => now(),
+            // Mismo formato que __DIR__ . '/uploads/...' del legacy (ruta de Windows con barras invertidas hasta la sub-app)
+            'Ruta_Documento' => str_replace('/', '\\', rtrim(config('legacy.path'), '/')) . "\\{$subApp}/uploads/{$carpetaUploads}/{$nombreArchivo}",
+            // Hora de México como el legacy (su date() usa date.timezone=America/Mexico_City); la app sigue en UTC
+            'Fecha_Subida' => now('America/Mexico_City')->format('Y-m-d H:i:s'),
         ]);
 
-        return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento laboral ' . $doc->Tipo_Documento . ' subido correctamente.');
+        // Mismo mensaje de éxito que el legacy
+        return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento actualizado correctamente.');
     }
+
 }

@@ -962,7 +962,8 @@
                                         <td>
                                             <div class="action-btn-group">
                                                 @if($doc->Ruta_Documento)
-                                                    <a class="action-btn action-btn-download" href="{{ $doc->Ruta_Documento }}" target="_blank" title="Ver documento">
+                                                    {{-- LegacyFile::url convierte la ruta de Windows del legacy (C:\xampp\htdocs\RH\...) en URL --}}     
+                                                    <a class="action-btn action-btn-download" href="{{ \App\Support\LegacyFile::url($doc->Ruta_Documento) }}" target="_blank" title="Ver documento">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                                             <circle cx="12" cy="12" r="3"></circle>
@@ -1016,7 +1017,8 @@
                                         <td>
                                             <div class="action-btn-group">
                                                 @if($doc->Ruta_Documento)
-                                                    <a class="action-btn action-btn-download" href="{{ $doc->Ruta_Documento }}" target="_blank" title="Ver documento">
+                                                    {{-- LegacyFile::url convierte la ruta de Windows del legacy (C:\xampp\htdocs\RH\...) en URL --}}
+                                                    <a class="action-btn action-btn-download" href="{{ \App\Support\LegacyFile::url($doc->Ruta_Documento) }}" target="_blank" title="Ver documento">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                                             <circle cx="12" cy="12" r="3"></circle>
