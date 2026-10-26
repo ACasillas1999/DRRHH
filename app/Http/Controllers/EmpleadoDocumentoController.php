@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DocumentoBaja;
 use App\Models\HistorialCambio;
 use App\Models\Incapacidad;
 use Illuminate\Support\Facades\DB;
@@ -414,7 +415,13 @@ class EmpleadoDocumentoController extends Controller
         // El legacy no limita extensión ni tamaño (solo el límite de PHP)
         $data = $request->validate([
             'nombre_documento' => ['required', 'string', 'max:150'],
-            'documento' => ['required', 'file'],
+            // Seguridad (diferencia con el legacy): aquí el legacy acepta cualquier tipo y se mantiene igual,
+            // pero se bloquean los archivos que Apache ejecutaría (.php y similares) si alguien abre su URL.
+            'documento' => ['required', 'file', function ($attribute, $value, $fail) {
+                if (preg_match('/\.(php\d*|phtml|phar|pht|phps|cgi|pl|asp|aspx|jsp|htaccess)$/i', $value->getClientOriginalName())) {
+                    $fail('Tipo de archivo no permitido.');
+                }
+            }],
         ]);
 
         // Igual que el legacy: un solo documento por nombre y empleado (SELECT COUNT(*) ... WHERE N_Empleado = ? AND Nombre_Documento = ?)
@@ -486,7 +493,9 @@ class EmpleadoDocumentoController extends Controller
     {
         $request->validate([
             'documento_id' => ['required', 'integer'],
-            'documento' => ['required', 'file'],
+            // Seguridad (diferencia con el legacy): el legacy solo limita la extensión en el navegador (accept=".pdf,.doc,.docx,.jpg,.png").
+            // Como el archivo se guarda con su nombre original dentro de htdocs, un .php se ejecutaría; aquí se valida en el servidor.
+            'documento' => ['required', 'file', 'extensions:pdf,doc,docx,jpg,png'],
         ]);
 
         // Carpeta física del legacy: C:/xampp/htdocs/RH/{subApp}/uploads/{carpetaUploads}
@@ -511,6 +520,44 @@ class EmpleadoDocumentoController extends Controller
 
         // Mismo mensaje de éxito que el legacy
         return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento actualizado correctamente.');
+    }
+
+    /**
+     * Port de Doc_BAJA/Subir_Documento.php: sube un documento de baja (RENUNCIA, FINIQUITO, etc.).
+     * A diferencia de Personales/Laborales, el legacy NO rechaza duplicados: si ya existe un archivo
+     * con ese nombre lo reemplaza. Tampoco escribe en el historial.
+     */
+    public function subirBaja(Request $request, string $n_empleado): RedirectResponse
+    {
+        $request->validate([
+            'documento_id' => ['required', 'integer'],
+            // Misma protección que subirExpediente: solo las extensiones que permite el legacy
+            'documento' => ['required', 'file', 'extensions:pdf,doc,docx,jpg,png'],
+        ]);
+
+        $doc = DocumentoBaja::where('N_Empleado', $n_empleado)->where('ID', $request->input('documento_id'))->firstOrFail();
+
+        // Carpeta física del legacy ("Doc_Baja" así, con minúsculas, es como la guarda el legacy en BD)
+        $carpeta = rtrim(config('legacy.path'), '/') . '/Doc_Baja/uploads/documento_baja';
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0777, true);
+        }
+
+        // Igual que el legacy: nombre original; move() reemplaza el archivo si ya existe
+        $nombreArchivo = basename($request->file('documento')->getClientOriginalName());
+        $request->file('documento')->move($carpeta, $nombreArchivo);
+
+        // Igual que el legacy: UPDATE por N_Empleado + Nombre_Documento (si el empleado tuvo varias bajas, se actualizan todos sus renglones con ese nombre)
+        DocumentoBaja::where('N_Empleado', $n_empleado)
+            ->where('Nombre_Documento', $doc->Nombre_Documento)
+            ->update([
+                // Ruta completa de Windows como el __DIR__ del legacy: C:\xampp\htdocs\RH\Doc_Baja/uploads/documento_baja/{nombre}
+                'Ruta_Documento' => str_replace('/', '\\', rtrim(config('legacy.path'), '/')) . "\\Doc_Baja/uploads/documento_baja/{$nombreArchivo}",
+                // Hora de México como el legacy; la app sigue en UTC
+                'Fecha_Subida' => now('America/Mexico_City'),
+            ]);
+
+        return redirect()->route('empleados.show', $n_empleado)->with('status', 'Documento subido exitosamente');
     }
 
     

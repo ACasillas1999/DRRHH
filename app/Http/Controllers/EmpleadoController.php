@@ -125,6 +125,13 @@ class EmpleadoController extends Controller
             ->select('documentos_laborales.*', 'machotes.Ruta_Archivo as machote_ruta')
             ->orderBy('documentos_laborales.Tipo_Documento')
             ->get();
+        // Igual que Doc_BAJA/index.php: LEFT JOIN con machotes por Nombre_Documento (solo se muestran si el empleado está de BAJA)
+        // Orden por ID = orden en que se insertaron al dar de baja (RENUNCIA, ENCUESTA, RATIFICACIÓN, FINIQUITO, FOLIO_BAJA)
+        $documentosBaja = $empleado->documentosBaja()
+            ->leftJoin('machotes', 'Documento_Baja.Nombre_Documento', '=', 'machotes.Nombre_Machote')
+            ->select('Documento_Baja.*', 'machotes.Ruta_Archivo as machote_ruta')
+            ->orderBy('Documento_Baja.ID')
+            ->get();
 
         $responsable = null;
         if ($laboral->puesto) {
@@ -148,7 +155,8 @@ class EmpleadoController extends Controller
             'historial',
             'contratos',
             'documentosEmpleado',
-            'documentosLaborales'
+            'documentosLaborales',
+            'documentosBaja'
         ));
     }
 

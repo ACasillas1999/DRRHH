@@ -873,6 +873,10 @@
                     <button class="tab-btn" onclick="switchSectionTab('secLaborales', this)">Datos Laborales</button>
                     <button class="tab-btn" onclick="switchSectionTab('secDocPersonales', this)">Documentos Personales</button>
                     <button class="tab-btn" onclick="switchSectionTab('secDocLaborales', this)">Documentos Laborales</button>
+                    {{-- Como el botón "Documentos BAJA" del legacy: solo si el empleado está de BAJA --}}
+                    @if ($laboral->Estatus === 'BAJA')
+                        <button class="tab-btn" onclick="switchSectionTab('secDocBaja', this)">Documentos BAJA</button>
+                    @endif
                 </div>
 
                 {{-- Sección: Personales --}}
@@ -1077,6 +1081,69 @@
                         </table>
                     </div>
                 </div>
+
+                {{-- Sección: Documentos BAJA (port de Doc_BAJA/index.php), solo si el empleado está de BAJA --}}
+                @if ($laboral->Estatus === 'BAJA')
+                <div id="secDocBaja" class="tab-pane">
+                    <div class="table-wrap">
+                        <table class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th>Documento</th>
+                                    <th>Estado</th>
+                                    <th>Fecha de Subida</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($documentosBaja as $doc)
+                                    <tr>
+                                        <td class="font-semibold">{{ $doc->Nombre_Documento }}</td>
+                                        <td>
+                                            @if($doc->Ruta_Documento)
+                                                <span class="badge-banner badge-banner-activo" style="padding: 0.25rem 0.6rem; font-size: 0.7rem;">Entregado</span>
+                                            @else
+                                                <span class="badge-banner badge-banner-baja" style="padding: 0.25rem 0.6rem; font-size: 0.7rem; background-color: #94a3b8;">Pendiente</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ $doc->Fecha_Subida ? \Illuminate\Support\Carbon::parse($doc->Fecha_Subida)->format('d/m/Y H:i') : '—' }}</td>
+                                        <td>
+                                            <div class="action-btn-group">
+                                                @if($doc->Ruta_Documento)
+                                                    {{-- Igual que el botón "Ver" del legacy: /RH/Doc_Baja/uploads/documento_baja/{nombre} --}}
+                                                    <a class="action-btn action-btn-download" href="{{ \App\Support\LegacyFile::url($doc->Ruta_Documento) }}" target="_blank" title="Ver documento">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                            <circle cx="12" cy="12" r="3"></circle>
+                                                        </svg>
+                                                    </a>
+                                                @endif
+                                                {{-- Como el "Descargar Machote" del legacy: sale siempre que haya machote --}}
+                                                @if($doc->machote_ruta)
+                                                    <a class="action-btn action-btn-generate" href="{{ \App\Support\LegacyFile::url($doc->machote_ruta) }}" target="_blank" title="Descargar machote">
+                                                        Machote
+                                                    </a>
+                                                @endif
+                                                <button type="button" class="action-btn action-btn-upload" onclick="openExpedienteUploadModal('baja', {{ $doc->ID }}, '{{ $doc->Nombre_Documento }}')" title="Subir archivo">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="vacio-row">No se encontraron documentos de baja registrados.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @endif
             </div>
 
             {{-- Ficha Nómina --}}
@@ -2179,9 +2246,16 @@
         
         if (group === 'personal') {
             form.action = `{{ route('empleados.documentos.subirPersonal', $empleado->N_Empleado) }}`;
+        } else if (group === 'baja') {
+            // Documentos de baja (Doc_BAJA)
+            form.action = `{{ route('empleados.documentos.subirBaja', $empleado->N_Empleado) }}`;
         } else {
             form.action = `{{ route('empleados.documentos.subirLaboral', $empleado->N_Empleado) }}`;
         }
+        // Confirmación del legacy de Doc_BAJA solo para baja (ahí sí se reemplaza el archivo anterior)
+        form.onsubmit = group === 'baja'
+            ? () => confirm('¿Estás seguro de que deseas subir este documento?\n\n Si ya existe un archivo previamente cargado para este documento, será reemplazado de forma permanente.')
+            : null;
         
         document.getElementById('expedienteUploadModal').style.display = 'flex';
     }
@@ -2549,26 +2623,6 @@
 
     function closeDocumentPreview() {
         document.getElementById('documentPreviewModal').style.display = 'none';
-    }
-
-    // Modal de Subida de Expediente
-    function openExpedienteUploadModal(group, id, name) {
-        const form = document.getElementById('expedienteUploadForm');
-        document.getElementById('expediente_documento_id').value = id;
-        document.getElementById('expediente_nombre_documento').value = name;
-        
-        if (group === 'personal') {
-            form.action = `{{ route('empleados.documentos.subirPersonal', $empleado->N_Empleado) }}`;
-        } else {
-            form.action = `{{ route('empleados.documentos.subirLaboral', $empleado->N_Empleado) }}`;
-        }
-        
-        document.getElementById('expedienteUploadModal').style.display = 'flex';
-    }
-
-    function closeExpedienteUploadModal() {
-        document.getElementById('expedienteUploadModal').style.display = 'none';
-        document.getElementById('expediente_documento').value = '';
     }
 
     // Cerrar modales si se hace clic fuera del contenido
