@@ -62,13 +62,15 @@
                     <div class="campo"><label>Sucursal Física</label><input type="text" name="Fisica" value="{{ old('Fisica', $laboral->Fisica) }}"></div>
                     <div class="campo"><label>Horario</label><input type="text" name="Horario" value="{{ old('Horario', $laboral->Horario) }}"></div>
                     <div class="campo"><label>Salario Diario Bruto</label><input type="number" step="0.01" name="Salario_Diario" value="{{ old('Salario_Diario', $laboral->Salario_Diario) }}"></div>
-                    <div class="campo"><label>Sueldo Bruto</label><input type="number" step="0.01" name="Sueldo" value="{{ old('Sueldo', $laboral->Sueldo) }}"></div>
+                    {{-- type="text" en Sueldo, Sueldo Neto, Comisión y KPI como en el legacy: guardan texto ("N/A", "9000 LIBRES");
+                         con type="number" el navegador los vaciaba y se guardaban como 0 --}}
+                    <div class="campo"><label>Sueldo Bruto</label><input type="text" name="Sueldo" value="{{ old('Sueldo', $laboral->Sueldo) }}"></div>
                     <div class="campo"><label>Salario Diario Neto</label><input type="number" step="0.01" name="Salario_Diario_Neto" value="{{ old('Salario_Diario_Neto', $laboral->Salario_Diario_Neto) }}"></div>
-                    <div class="campo"><label>Sueldo Neto</label><input type="number" step="0.01" name="Sueldo_Neto" value="{{ old('Sueldo_Neto', $laboral->Sueldo_Neto) }}"></div>
+                    <div class="campo"><label>Sueldo Neto</label><input type="text" name="Sueldo_Neto" value="{{ old('Sueldo_Neto', $laboral->Sueldo_Neto) }}"></div>
                     <div class="campo"><label>Compensación</label><input type="text" name="Hora_Comida" value="{{ old('Hora_Comida', $laboral->Hora_Comida) }}"></div>
                     <div class="campo"><label>Efectivo</label><input type="number" step="0.01" name="Efectivo" value="{{ old('Efectivo', $laboral->Efectivo) }}"></div>
-                    <div class="campo"><label>Comisión</label><input type="number" step="0.01" name="Comision" value="{{ old('Comision', $laboral->Comision) }}"></div>
-                    <div class="campo"><label>KPI</label><input type="number" step="0.01" name="KPI" value="{{ old('KPI', $laboral->KPI) }}"></div>
+                    <div class="campo"><label>Comisión</label><input type="text" name="Comision" value="{{ old('Comision', $laboral->Comision) }}"></div>
+                    <div class="campo"><label>KPI</label><input type="text" name="KPI" value="{{ old('KPI', $laboral->KPI) }}"></div>
                     <div class="campo"><label>Teléfono Empresarial</label><input type="text" name="Telefono_Empresarial" value="{{ old('Telefono_Empresarial', $laboral->Telefono_Empresarial) }}"></div>
                     <div class="campo"><label>Extensión</label><input type="text" name="Extension" value="{{ old('Extension', $laboral->Extension) }}"></div>
                     <div class="campo"><label>Correo Empresarial</label><input type="email" name="Correo_Empresarial" value="{{ old('Correo_Empresarial', $laboral->Correo_Empresarial) }}"></div>
