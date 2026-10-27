@@ -14,7 +14,7 @@
     .btn-primary { background-color: var(--primary); color: white; }
     .btn-secundario { background-color: var(--bg-page); border: 1px solid var(--border-color); color: var(--text-main); }
 
-    .section-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 1.5rem; box-shadow: var(--shadow-sm); margin-bottom: 1.25rem; }
+    .section-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 1.5rem; box-shadow: var(--shadow-sm); margin-bottom: 1.25rem; overflow-x: auto; /* la tabla se desliza dentro de la tarjeta en celular */ }
     .section-card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
 
     table { width: 100%; border-collapse: collapse; }
