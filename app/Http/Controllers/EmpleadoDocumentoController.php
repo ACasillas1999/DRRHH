@@ -98,9 +98,20 @@ class EmpleadoDocumentoController extends Controller
         return response()->download($rutaArchivo)->deleteFileAfterSend(true);
     }
 
+    /**
+     * Monto en letras con formato legal: "CUATROCIENTOS DOCE PESOS 50/100 M.N.".
+     * Antes (igual que el legacy) toWords() ponía los centavos como "CON CINCUENTA" y el machote agregaba "PESOS",
+     * así que 412.50 se leía "CUATROCIENTOS DOCE CON CINCUENTA PESOS". Se corrigió en ambas apps y en los machotes (2026-10-27).
+     */
     private function salarioConLetra(?float $salarioDiario): string
     {
-        return (new NumeroALetras())->toWords((float) ($salarioDiario ?? 0));
+        $formatter = new NumeroALetras();
+        $formatter->apocope = true; // "VEINTIUN PESOS" en vez de "VEINTIUNO PESOS"
+        // Se trabaja en centavos enteros para evitar errores de redondeo de float (412.50 * 100 = 41250)
+        $centavosTotales = (int) round((float) ($salarioDiario ?? 0) * 100);
+
+        return $formatter->toWords(intdiv($centavosTotales, 100)) . ' PESOS '
+            . str_pad($centavosTotales % 100, 2, '0', STR_PAD_LEFT) . '/100 M.N.';
     }
 
     public function fichaNomina(Request $request, string $n_empleado)
