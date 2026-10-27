@@ -176,8 +176,9 @@
                 </select>
             </div>
             <div class="campo">
-                <label for="busqueda">Buscar</label>
-                <input type="text" name="busqueda" id="busqueda" value="{{ $filtros['busqueda'] ?? '' }}" placeholder="Nombre o número...">
+                <label for="buscarTabla">Buscar</label>
+                {{-- Como el legacy: busca en vivo en todas las columnas de la tabla (sin name, no se envía con los filtros) --}}
+                <input type="text" id="buscarTabla" onkeyup="buscarEnTabla()" placeholder="Buscar en todos los campos...">
             </div>
             <div class="campo filtros-acciones">
                 <button type="submit" class="btn btn-primary">Filtrar</button>
@@ -229,15 +230,18 @@
             </tbody>
         </table>
     </div>
-
-    <!-- Paginación -->
-    <div class="pagination-wrap">
-        {{ $empleados->links() }}
-    </div>
 @endsection
 
 @push('scripts')
 <script>
+    // Port de filterTable() del legacy: oculta las filas que no contienen el texto en ninguna columna
+    function buscarEnTabla() {
+        const texto = document.getElementById('buscarTabla').value.toLowerCase();
+        document.querySelectorAll('#tablaEmpleados tbody tr').forEach(fila => {
+            fila.style.display = fila.textContent.toLowerCase().includes(texto) ? '' : 'none';
+        });
+    }
+
     function ordenarTabla(columna, esNumerico) {
         const tabla = document.getElementById('tablaEmpleados');
         const filas = Array.from(tabla.tBodies[0].rows);

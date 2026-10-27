@@ -29,18 +29,23 @@ class EmpleadoController extends Controller
         $puestos = Puesto::query()->whereNotNull('Nombre_Puesto')->where('Nombre_Puesto', '!=', '')->distinct()->orderBy('Nombre_Puesto')->pluck('Nombre_Puesto');
         $departamentos = Puesto::query()->whereNotNull('Departamento')->where('Departamento', '!=', '')->distinct()->orderBy('Departamento')->pluck('Departamento');
 
+        // Igual que el legacy (empleados.php): solo revisa el PRIMER documento de baja de cada empleado,
+        // porque hace un solo fetch_assoc() sin ORDER BY (MySQL regresa primero el de menor ID).
+        // Si ese primero está vacío, el estatus sale en amarillo.
+        $primerDocBaja = DocumentoBaja::query()->selectRaw('MIN(ID)')->groupBy('N_Empleado');
         $pendientes = DocumentoBaja::query()
+            ->whereIn('ID', $primerDocBaja)
             ->where(function ($q) {
                 $q->whereNull('Ruta_Documento')->orWhere('Ruta_Documento', '');
             })
-            ->distinct()
             ->pluck('N_Empleado')
             ->all();
 
         $query = Personal::query()
             ->join('laborales_empleado', 'laborales_empleado.N_Empleado', '=', 'personales.N_Empleado')
             ->join('puestos', 'puestos.ID', '=', 'laborales_empleado.ID_Puesto')
-            ->leftJoin('fechas_laborales', 'fechas_laborales.N_Empleado', '=', 'personales.N_Empleado')
+            // JOIN (no LEFT JOIN) como el legacy: un empleado sin fila en fechas_laborales no aparece en la lista
+            ->join('fechas_laborales', 'fechas_laborales.N_Empleado', '=', 'personales.N_Empleado')
             ->select([
                 'personales.N_Empleado',
                 'personales.Nombre_Completo',
@@ -78,8 +83,8 @@ class EmpleadoController extends Controller
         $empleados = $query
             ->orderBy('laborales_empleado.Estatus')
             ->orderByDesc('personales.N_Empleado')
-            ->paginate(30)
-            ->withQueryString();
+            // Sin paginación, como el legacy: todos en una página para que ordenar y buscar abarquen a todos
+            ->get();
 
         return view('empleados.index', compact(
             'empleados',
@@ -95,9 +100,6 @@ class EmpleadoController extends Controller
 
     public function show(string $n_empleado)
     {
-        if (!auth()->check()) {
-            \Illuminate\Support\Facades\Auth::loginUsingId(1);
-        }
         $empleado = Personal::where('N_Empleado', $n_empleado)->firstOrFail();
         $laboral = LaboralEmpleado::with('puesto', 'razonSocial')->where('N_Empleado', $n_empleado)->first();
         abort_if(!$laboral, 404);
