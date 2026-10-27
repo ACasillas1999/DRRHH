@@ -99,7 +99,7 @@ class EmpleadoDocumentoController extends Controller
     }
 
     /**
-     * Monto en letras con formato legal: "CUATROCIENTOS DOCE PESOS 50/100 M.N.".
+     * Monto en letras: "CUATROCIENTOS DOCE PESOS CON CINCUENTA CENTAVOS" (sin centavos: "... PESOS CON CERO CENTAVOS").
      * Antes (igual que el legacy) toWords() ponía los centavos como "CON CINCUENTA" y el machote agregaba "PESOS",
      * así que 412.50 se leía "CUATROCIENTOS DOCE CON CINCUENTA PESOS". Se corrigió en ambas apps y en los machotes (2026-10-27).
      */
@@ -109,9 +109,11 @@ class EmpleadoDocumentoController extends Controller
         $formatter->apocope = true; // "VEINTIUN PESOS" en vez de "VEINTIUNO PESOS"
         // Se trabaja en centavos enteros para evitar errores de redondeo de float (412.50 * 100 = 41250)
         $centavosTotales = (int) round((float) ($salarioDiario ?? 0) * 100);
+        $centavos = $centavosTotales % 100;
 
-        return $formatter->toWords(intdiv($centavosTotales, 100)) . ' PESOS '
-            . str_pad($centavosTotales % 100, 2, '0', STR_PAD_LEFT) . '/100 M.N.';
+        // trim(): toWords(0) devuelve "CERO " con espacio al final
+        return trim($formatter->toWords(intdiv($centavosTotales, 100))) . ' PESOS CON '
+            . trim($formatter->toWords($centavos)) . ($centavos === 1 ? ' CENTAVO' : ' CENTAVOS');
     }
 
     public function fichaNomina(Request $request, string $n_empleado)
