@@ -116,6 +116,18 @@
     .ver-link { color: var(--primary); font-weight: 600; text-decoration: none; font-size: 0.85rem; }
     .ver-link:hover { text-decoration: underline; }
 
+    /* Nombre, Puesto y Razón Social pueden partirse en dos líneas para que la tabla quepa sin deslizar a los lados */
+    tbody td.celda-larga { white-space: normal; min-width: 150px; max-width: 220px; }
+    /* Dato secundario debajo del principal (Departamento, Sucursal Física) */
+    .sub-dato { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem; }
+    .sub-link { display: block; font-size: 0.75rem; margin-top: 0.15rem; }
+    tbody tr[data-href] { cursor: pointer; }
+
+    /* Tablet vertical: se oculta Fecha Ingreso para que no haya scroll lateral (se ve en el detalle) */
+    @media (max-width: 900px) {
+        .col-fecha { display: none; }
+    }
+
     .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
 
     /* Paginación en el navegador (ver script): Mostrar N, info y Anterior/Siguiente */
@@ -204,15 +216,14 @@
         <table id="tablaEmpleados">
             <thead>
                 <tr>
-                    <th onclick="ordenarTabla(0, true)">N° Empleado</th>
+                    {{-- 6 columnas en vez de 9 para no tener que deslizar a los lados:
+                         Puesto+Departamento y Razón Social+Sucursal van juntas, y "Ver detalles" va bajo el estado --}}
+                    <th onclick="ordenarTabla(0, true)">N°</th>
                     <th onclick="ordenarTabla(1, false)">Nombre</th>
-                    <th onclick="ordenarTabla(2, false)">Puesto</th>
-                    <th onclick="ordenarTabla(3, false)">Departamento</th>
-                    <th onclick="ordenarTabla(4, false)">Razón Social</th>
-                    <th onclick="ordenarTabla(5, false)">Sucursal Física</th>
-                    <th onclick="ordenarTabla(6, false)">Fecha Ingreso</th>
-                    <th onclick="ordenarTabla(7, false)">Estado</th>
-                    <th>Acciones</th>
+                    <th onclick="ordenarTabla(2, false)">Puesto / Depto.</th>
+                    <th onclick="ordenarTabla(3, false)">Razón Social / Sucursal</th>
+                    <th class="col-fecha" onclick="ordenarTabla(4, false)">Fecha Ingreso</th>
+                    <th onclick="ordenarTabla(5, false)">Estado</th>
                 </tr>
             </thead>
             <tbody>
@@ -223,20 +234,27 @@
                             ? 'estatus-pendiente'
                             : ($empleado->Estatus === 'ACTIVO' ? 'estatus-activo' : ($empleado->Estatus === 'BAJA' ? 'estatus-baja' : ''));
                     @endphp
-                    <tr>
+                    {{-- data-href: toda la fila abre el detalle (ver script) --}}
+                    <tr data-href="{{ route('empleados.show', $empleado->N_Empleado) }}">
                         <td>{{ $empleado->N_Empleado }}</td>
-                        <td>{{ $empleado->Nombre_Completo }}</td>
-                        <td>{{ $empleado->Nombre_Puesto }}</td>
-                        <td>{{ $empleado->Departamento }}</td>
-                        <td>{{ $empleado->Nomeclatura }}</td>
-                        <td>{{ $empleado->Fisica }}</td>
-                        <td>{{ $empleado->Fecha_Ingreso }}</td>
-                        <td class="{{ $claseEstatus }}">{{ $empleado->Estatus }}</td>
-                        <td><a class="ver-link" href="{{ route('empleados.show', $empleado->N_Empleado) }}">Ver Detalles</a></td>
+                        <td class="celda-larga">{{ $empleado->Nombre_Completo }}</td>
+                        <td class="celda-larga">
+                            {{ $empleado->Nombre_Puesto }}
+                            <span class="sub-dato">{{ $empleado->Departamento }}</span>
+                        </td>
+                        <td class="celda-larga">
+                            {{ $empleado->Nomeclatura }}
+                            <span class="sub-dato">{{ $empleado->Fisica }}</span>
+                        </td>
+                        <td class="col-fecha">{{ $empleado->Fecha_Ingreso }}</td>
+                        <td>
+                            <span class="{{ $claseEstatus }}">{{ $empleado->Estatus }}</span>
+                            <a class="ver-link sub-link" href="{{ route('empleados.show', $empleado->N_Empleado) }}">Ver detalles ›</a>
+                        </td>
                     </tr>
                 @empty
                     <tr class="fila-vacia">
-                        <td colspan="9" class="empty-state">No se encontraron empleados con esos filtros.</td>
+                        <td colspan="6" class="empty-state">No se encontraron empleados con esos filtros.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -314,6 +332,14 @@
         // Después de ordenar se vuelve a la página 1 con el nuevo orden
         cambiarPagina(0, true);
     }
+
+    // Toda la fila abre el detalle del empleado (además del link "Ver detalles")
+    document.querySelectorAll('#tablaEmpleados tbody tr[data-href]').forEach(fila => {
+        fila.addEventListener('click', evento => {
+            if (evento.target.closest('a')) return; // el link ya navega solo
+            window.location = fila.dataset.href;
+        });
+    });
 
     // Primera página al cargar
     aplicarPaginacion();
