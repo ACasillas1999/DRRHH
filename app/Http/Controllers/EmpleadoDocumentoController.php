@@ -108,14 +108,17 @@ class EmpleadoDocumentoController extends Controller
         $request->validate(['Autoriza' => ['nullable', 'string', 'max:150']]);
         $datos = $this->datosBase($n_empleado);
         $tags = $this->tagsComunes($datos) + ['Autoriza' => $request->input('Autoriza', '')];
+        // Igual que Ficha_Nominas.php del legacy: en la ficha "Sueldo" se llena con Sueldo_Neto (no con Sueldo)
+        // y se agrega "Fisica" (sucursal física). Se asignan directo porque "+" no reemplaza llaves que ya existen.
+        $tags['Sueldo'] = $datos['laboral']->Sueldo_Neto;
+        $tags['Fisica'] = $datos['laboral']->Fisica;
 
+        // La foto se guarda como "/RH/Fotos_Empleados/..." (carpeta del legacy); LegacyFile::path() la pasa a ruta en disco.
+        // (El legacy la descarga por http de 192.168.60.142, que en producción es el mismo servidor)
         $imagenes = [];
-        $rutaFoto = $datos['rutaDocumento']->Ruta_Foto_Empleado ?? null;
-        if ($rutaFoto) {
-            $rutaLocal = public_path(ltrim($rutaFoto, '/'));
-            if (file_exists($rutaLocal)) {
-                $imagenes['Ruta_foto'] = $rutaLocal;
-            }
+        $rutaLocal = \App\Support\LegacyFile::path($datos['rutaDocumento']->Ruta_Foto_Empleado ?? null);
+        if ($rutaLocal && file_exists($rutaLocal)) {
+            $imagenes['Ruta_foto'] = $rutaLocal;
         }
 
         $archivo = $this->documentos->generar('ficha_nominas.docx', $tags, "Ficha_Nominas_{$n_empleado}.docx", $imagenes);

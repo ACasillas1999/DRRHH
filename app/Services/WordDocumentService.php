@@ -13,10 +13,30 @@ class WordDocumentService
 
     public function fechaHoyEnEspanol(): string
     {
-        $hoy = now();
+        // Hora de México como el legacy (su "new DateTime()" usa date.timezone=America/Mexico_City); la app sigue en UTC.
+        // Sin esto, después de las 6 pm de México los documentos salían con la fecha de mañana.
+        $hoy = now('America/Mexico_City');
 
-        return "{$hoy->day} de " . self::MESES[$hoy->month] . " del {$hoy->year}";
+        // format('d') = día con dos dígitos ("05"), igual que el legacy; ->day daba "5"
+        return $hoy->format('d') . ' de ' . self::MESES[$hoy->month] . " del {$hoy->year}";
     }
+
+
+        /**
+     * Machotes del legacy (RH/...). Se leen de ahí para que, si RH actualiza un machote en el legacy,
+     * DRRHH genere lo mismo. La copia de storage/app/machotes solo se usa si el archivo del legacy no existe.
+     */
+    private const MACHOTES_LEGACY = [
+        'ficha_nominas.docx' => 'Machotes/Ingreso/FICHA_EXPEDIENTE_RH.docx',
+        'carta_oferta.docx' => 'Machotes/Ingreso/Carta_Oferta.docx',
+        'carta_confidencialidad.docx' => 'Machotes/Ingreso/CARTA_DE_CONFIDENCIALIDAD.docx',
+        'politica_puntualidad.docx' => 'Machotes/Ingreso/Reglamento_de_Puntualidad.docx',
+        'folio_baja.docx' => 'Machotes/SOLICITUD DE FINIQUITO.docx',
+        'contrato_determinado.docx' => 'Machotes/CONTRATO_DETERMINADO_GRUPO_ASCENCIO_2024.docx',
+        'contrato_indeterminado.docx' => 'Machotes/CONTRATO_INDETERMINADO_GRUPO_ASCENCIO_2024.docx',
+        'convenio.docx' => 'Machotes/Ingreso/CONVENIO_DE_CONFIDENCIALIDAD_Y_FIDELIDAD.docx',
+    ];
+
 
     /**
      * Rellena una plantilla .docx con los valores dados y devuelve la ruta del archivo temporal generado.
@@ -24,7 +44,11 @@ class WordDocumentService
      */
     public function generar(string $plantilla, array $valores, string $nombreSalida, array $imagenes = []): string
     {
-        $rutaPlantilla = storage_path("app/machotes/{$plantilla}");
+        // Primero el machote del legacy; si no existe, la copia local
+        $rutaLegacy = isset(self::MACHOTES_LEGACY[$plantilla])
+            ? rtrim(config('legacy.path'), '/') . '/' . self::MACHOTES_LEGACY[$plantilla]
+            : null;
+        $rutaPlantilla = ($rutaLegacy && file_exists($rutaLegacy)) ? $rutaLegacy : storage_path("app/machotes/{$plantilla}");
         $procesador = new TemplateProcessor($rutaPlantilla);
 
         foreach ($valores as $tag => $valor) {
@@ -33,7 +57,7 @@ class WordDocumentService
 
         foreach ($imagenes as $tag => $rutaImagen) {
             if ($rutaImagen && file_exists($rutaImagen)) {
-                $procesador->setImageValue($tag, ['path' => $rutaImagen, 'width' => 120, 'height' => 120, 'ratio' => true]);
+                $procesador->setImageValue($tag, ['path' => $rutaImagen, 'width' => 100, 'height' => 100, 'ratio' => true]);
             }
         }
 
