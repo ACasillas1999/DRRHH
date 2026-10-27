@@ -91,7 +91,7 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: var(--text-muted);
-        padding: 1rem 1.25rem;
+        padding: 0.7rem 1rem; /* más compacto para que quepan más filas en pantalla */
         border-bottom: 1px solid var(--border-color);
         white-space: nowrap;
         cursor: pointer;
@@ -100,9 +100,9 @@
     thead th:hover { color: var(--primary); }
 
     tbody td {
-        padding: 0.85rem 1.25rem;
+        padding: 0.5rem 1rem; /* filas compactas */
         border-bottom: 1px solid var(--border-color);
-        font-size: 0.875rem;
+        font-size: 0.85rem;
         white-space: nowrap;
     }
 
@@ -118,7 +118,19 @@
 
     .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
 
-    .pagination-wrap { margin-top: 1.5rem; }
+    /* Paginación en el navegador (ver script): Mostrar N, info y Anterior/Siguiente */
+    .paginador {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    .paginador select { width: auto; } /* el select general de esta vista es width: 100% */
+    .paginador .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
 @endpush
 
@@ -223,23 +235,65 @@
                         <td><a class="ver-link" href="{{ route('empleados.show', $empleado->N_Empleado) }}">Ver Detalles</a></td>
                     </tr>
                 @empty
-                    <tr>
+                    <tr class="fila-vacia">
                         <td colspan="9" class="empty-state">No se encontraron empleados con esos filtros.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+
+    {{-- Paginación en el navegador: se cargan todos los empleados (como el legacy) pero se muestran por páginas,
+         así buscar y ordenar siguen abarcando a todos --}}
+    <div class="paginador">
+        <label for="porPagina">Mostrar</label>
+        <select id="porPagina" onchange="cambiarPagina(0, true)">
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+        <span id="paginaInfo"></span>
+        <button type="button" class="btn btn-secundario" id="btnAnterior" onclick="cambiarPagina(-1)">‹ Anterior</button>
+        <button type="button" class="btn btn-secundario" id="btnSiguiente" onclick="cambiarPagina(1)">Siguiente ›</button>
+    </div>
 @endsection
 
 @push('scripts')
 <script>
-    // Port de filterTable() del legacy: oculta las filas que no contienen el texto en ninguna columna
-    function buscarEnTabla() {
+    // Paginación en el navegador. Las filas que coinciden con la búsqueda se reparten en páginas
+    let paginaActual = 1;
+
+    function aplicarPaginacion() {
         const texto = document.getElementById('buscarTabla').value.toLowerCase();
-        document.querySelectorAll('#tablaEmpleados tbody tr').forEach(fila => {
-            fila.style.display = fila.textContent.toLowerCase().includes(texto) ? '' : 'none';
-        });
+        const porPagina = parseInt(document.getElementById('porPagina').value, 10);
+        const filas = Array.from(document.querySelectorAll('#tablaEmpleados tbody tr:not(.fila-vacia)'));
+
+        // Port de filterTable() del legacy: coincide si el texto está en cualquier columna
+        const coinciden = filas.filter(fila => fila.textContent.toLowerCase().includes(texto));
+        const totalPaginas = Math.max(1, Math.ceil(coinciden.length / porPagina));
+        paginaActual = Math.min(Math.max(paginaActual, 1), totalPaginas);
+
+        // Se ocultan todas y solo se muestran las de la página actual
+        const inicio = (paginaActual - 1) * porPagina;
+        filas.forEach(fila => fila.style.display = 'none');
+        coinciden.slice(inicio, inicio + porPagina).forEach(fila => fila.style.display = '');
+
+        document.getElementById('paginaInfo').textContent =
+            `Página ${paginaActual} de ${totalPaginas} · ${coinciden.length} empleados`;
+        document.getElementById('btnAnterior').disabled = paginaActual === 1;
+        document.getElementById('btnSiguiente').disabled = paginaActual === totalPaginas;
+    }
+
+    // delta: -1 anterior, 1 siguiente. reiniciar: volver a la página 1 (al buscar o cambiar "Mostrar")
+    function cambiarPagina(delta, reiniciar = false) {
+        paginaActual = reiniciar ? 1 : paginaActual + delta;
+        aplicarPaginacion();
+    }
+
+    // Lo llama el input de búsqueda (onkeyup)
+    function buscarEnTabla() {
+        cambiarPagina(0, true);
     }
 
     function ordenarTabla(columna, esNumerico) {
@@ -256,6 +310,12 @@
 
         filas.forEach(fila => tabla.tBodies[0].appendChild(fila));
         tabla.setAttribute('data-sort', asc ? 'asc' : 'desc');
+
+        // Después de ordenar se vuelve a la página 1 con el nuevo orden
+        cambiarPagina(0, true);
     }
+
+    // Primera página al cargar
+    aplicarPaginacion();
 </script>
 @endpush
