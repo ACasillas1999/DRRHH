@@ -1523,6 +1523,12 @@
                         </tbody>
                     </table>
                 </div>
+                {{-- Como el botón "Inventario" del legacy (debajo de la tabla de asignaciones), solo Admin y RH --}}
+                @if(in_array(auth()->user()->Rol ?? '', ['Admin', 'RH']))
+                    <div class="pagos-btn-row">
+                        <a href="{{ route('inventario') }}" class="btn-pago-doc">Inventario</a>
+                    </div>
+                @endif
             </div>
 
             {{-- Historial de Pagos --}}

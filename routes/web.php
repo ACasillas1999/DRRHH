@@ -91,6 +91,9 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('role:Admin,RH')->group(function () {
+        // Inventario: en el legacy es RH/Inventario.php (solo Admin y RH). Aún no se migra, se muestra la página de mantenimiento
+        Route::view('/inventario', 'mantenimiento', ['seccion' => 'Inventario'])->name('inventario');
+
         // Subir el documento de una incapacidad por su ID. Port de procesar_incapacidad.php
         // Va en este grupo porque en el legacy solo Admin y RH ven el botón de subir (Nominas no)
         Route::post('/empleados/{n_empleado}/incapacidades/subir', [EmpleadoDocumentoController::class, 'subirIncapacidad'])->name('empleados.incapacidades.subir');
