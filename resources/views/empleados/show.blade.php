@@ -1397,11 +1397,12 @@
                         </thead>
                         <tbody>
                             @forelse($fechasLaborales as $fecha)
+                                {{-- Como el legacy: al hacer clic en una fecha, el calendario salta a ese día (ver script del calendario) --}}
                                 <tr>
-                                    <td>{{ $fecha->Fecha_Ingreso ?: '—' }}</td>
-                                    <td>{{ $fecha->Fecha_Egreso ?: '—' }}</td>
-                                    <td>{{ $fecha->Fecha_Alta_IMSS ?: '—' }}</td>
-                                    <td>{{ $fecha->Fecha_Baja_IMSS ?: '—' }}</td>
+                                    <td class="fecha-celda" data-fecha="{{ $fecha->Fecha_Ingreso }}">{{ $fecha->Fecha_Ingreso ?: '—' }}</td>
+                                    <td class="fecha-celda" data-fecha="{{ $fecha->Fecha_Egreso }}">{{ $fecha->Fecha_Egreso ?: '—' }}</td>
+                                    <td class="fecha-celda" data-fecha="{{ $fecha->Fecha_Alta_IMSS }}">{{ $fecha->Fecha_Alta_IMSS ?: '—' }}</td>
+                                    <td class="fecha-celda" data-fecha="{{ $fecha->Fecha_Baja_IMSS }}">{{ $fecha->Fecha_Baja_IMSS ?: '—' }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -2155,6 +2156,32 @@
 
     // Inicializar Calendario de Eventos Filtrado por Empleado
     document.addEventListener('DOMContentLoaded', function() {
+        @php
+            // Mismos títulos y colores que el legacy: Ingreso azul, Alta IMSS verde, Egreso y Baja IMSS rojo
+            $tiposFechas = [
+                'Fecha_Ingreso'   => ['Fecha de Ingreso', 'blue'],
+                'Fecha_Alta_IMSS' => ['Fecha Alta IMSS', 'green'],
+                'Fecha_Egreso'    => ['Fecha de Egreso', 'red'],
+                'Fecha_Baja_IMSS' => ['Fecha de Baja IMSS', 'red'],
+            ];
+            $eventosFechasLaborales = [];
+            foreach ($fechasLaborales as $fila) {
+                foreach ($tiposFechas as $columna => [$titulo, $color]) {
+                    // Si la fecha está vacía (o 0000-00-00) el legacy no dibuja nada en el calendario
+                    if (empty($fila->$columna) || str_starts_with($fila->$columna, '0000')) {
+                        continue;
+                    }
+                    $eventosFechasLaborales[] = [
+                        'title' => $titulo,
+                        'start' => substr($fila->$columna, 0, 10),
+                        'color' => $color,
+                        'allDay' => true,
+                        'extendedProps' => ['tipo' => 'Fechas Laborales'],
+                    ];
+                }
+            }
+        @endphp
+        var fechasLaboralesEventos = @json($eventosFechasLaborales);
         var calendarEl = document.getElementById('employee-calendar');
         if (calendarEl) {
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -2167,7 +2194,12 @@
                     center: 'title',
                     right: 'dayGridMonth'
                 },
-                events: `{{ route('diario.eventos-feed') }}?n_empleado={{ $empleado->N_Empleado }}`,
+                eventSources: [
+                    // Eventos de DRRHH (cumpleaños, aniversarios, vacaciones, etc.)
+                    { url: `{{ route('diario.eventos-feed') }}?n_empleado={{ $empleado->N_Empleado }}` },
+                    // Mismos 4 eventos que el calendario del legacy (Detalles_Empleado.php) por cada fila de fechas_laborales
+                    { events: fechasLaboralesEventos }
+                ],
                 eventClick: function(info) {
                     info.jsEvent.preventDefault();
 
@@ -2227,6 +2259,17 @@
                 }
             });
             calendar.render();
+
+            // Como el legacy: al hacer clic en una fecha de la tabla "Fechas Laborales", el calendario va a ese día y lo marca
+            document.querySelectorAll('.fecha-celda').forEach(function (celda) {
+                celda.style.cursor = 'pointer';
+                celda.addEventListener('click', function () {
+                    var fecha = (celda.dataset.fecha || '').substring(0, 10);
+                    if (!fecha || fecha.startsWith('0000')) return; // celda vacía: no hace nada
+                    calendar.gotoDate(fecha);
+                    calendar.select(fecha);
+                });
+            });
         }
     });
 
