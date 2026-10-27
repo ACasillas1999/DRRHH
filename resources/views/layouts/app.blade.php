@@ -482,9 +482,24 @@
         }
 
         /* ----- MOBILE RESPONSIVENESS ----- */
-        @media (max-width: 768px) {
+        /* Fondo oscuro detrás del menú abierto en celular/tablet: al tocarlo se cierra el menú */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            z-index: 99; /* debajo del aside (100), encima del contenido */
+        }
+
+        /* Celular y tablet (hasta 1024px): el menú se oculta y se abre con la hamburguesa.
+           Antes era 768px, y en tablet el menú fijo ocupaba un tercio de la pantalla */
+        @media (max-width: 1024px) {
             aside {
                 transform: translateX(-100%);
+                transition: transform var(--transition-speed) ease;
+            }
+            aside.mobile-open ~ .sidebar-backdrop {
+                display: block;
             }
             aside.mobile-open {
                 transform: translateX(0);
@@ -498,6 +513,10 @@
         @media (max-width: 480px) {
             .topbar {
                 padding: 0 1rem;
+            }
+            /* En celular 2rem por lado le quita mucho espacio al contenido */
+            main {
+                padding: 1rem;
             }
             .profile-widget {
                 display: none;
@@ -814,6 +833,8 @@
             </form>
         </div>
     </aside>
+    {{-- Fondo oscuro del menú en celular/tablet (se muestra con CSS cuando el aside tiene .mobile-open) --}}
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <!-- WRAPPER DE CONTENIDO -->
     <div class="wrapper" id="appWrapper">
@@ -914,17 +935,25 @@
                 localStorage.setItem('sidebar-collapsed', isCollapsed ? 'true' : 'false');
             }
 
+            // Debe coincidir con el @media (max-width: 1024px) del CSS
+            const ANCHO_MOVIL = 1024;
+
             collapseBtn.addEventListener('click', () => {
-                // En móviles actúa como menú hamburguesa
-                if (window.innerWidth <= 768) {
+                // En celular/tablet actúa como menú hamburguesa
+                if (window.innerWidth <= ANCHO_MOVIL) {
                     sidebar.classList.toggle('mobile-open');
                 } else {
                     toggleSidebar();
                 }
             });
 
-            // Recuperar estado colapsado
-            if (localStorage.getItem('sidebar-collapsed') === 'true' && window.innerWidth > 768) {
+            // Tocar el fondo oscuro cierra el menú
+            document.getElementById('sidebarBackdrop').addEventListener('click', () => {
+                sidebar.classList.remove('mobile-open');
+            });
+
+            // Recuperar estado colapsado (solo en pantallas grandes)
+            if (localStorage.getItem('sidebar-collapsed') === 'true' && window.innerWidth > ANCHO_MOVIL) {
                 sidebar.classList.add('collapsed');
                 wrapper.classList.add('expanded');
             }
