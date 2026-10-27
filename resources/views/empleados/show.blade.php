@@ -1739,7 +1739,9 @@
             </div>
 
             {{-- Folio Baja: igual que la sección del legacy (Generar Folio + Subir Documento + folios subidos).
-                 Reemplaza a "Documentos Adicionales", que no existía en el legacy. --}}
+                 Reemplaza a "Documentos Adicionales", que no existía en el legacy.
+                 Como en el legacy, solo se muestra si el empleado está en BAJA --}}
+            @if ($laboral->Estatus === 'BAJA')
             <div class="detail-card">
                 <h2>Folio Baja</h2>
                 <table class="premium-table">
@@ -1763,6 +1765,8 @@
                 {{-- Folios subidos, como en el legacy --}}
                 @include('empleados.partials.documentos-subidos', ['documentos' => $documentosGenerados->where('Nombre_Documento', 'Folio Baja'), 'mensajeVacio' => 'No hay folios disponibles'])
             </div>
+            @endif
+
 
         </div>
 
