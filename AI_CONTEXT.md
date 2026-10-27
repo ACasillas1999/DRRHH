@@ -3,6 +3,12 @@
 Shared handoff notes for any AI tool editing this project. See `.claude/skills/ai-context/SKILL.md`
 for the read/write rules. Capped at 10 entries, most recent first.
 
+## 2026-10-27 — Claude Code (Opus 5.5)
+Empleados (show/alta/documentos) llevado a paridad con legacy `RH/Detalles_Empleado.php` completo (expediente, baja, machotes, ficha, folio solo en BAJA, fechas laborales en calendario, botón Inventario → `/inventario` página "en mantenimiento"). Regla del usuario: igualar legacy, desviarse solo por seguridad/corrupción de datos y decirlo.
+Gotchas: legacy guarda en hora México (usar `now('America/Mexico_City')`, app en UTC); legacy no-estricto guarda '' en NOT NULL (DRRHH strict truena con null); desde la PC del dev `DB_HOST=localhost` NO es el .117 → no hay acceso SQL directo; .142 = producción, nunca probar ahí.
+PENDIENTE limpieza datos de prueba (usuario no pudo entrar a phpMyAdmin): filas de prueba en documentos_generados/Documento_Baja/contratos 3040-3043/historial_cambios (2 filas vacías "Se eliminó un documento personal -   - del Empleado: ") de 9001/9002/9999/999999 (+ datos IMSS del 999999); revisar foto del 1434 antes de borrar `RH/Fotos_Empleados/prueba_foto_claude*.png`; archivos `RH/uploads/documentos/{prueba_ficha_claude*.pdf,s.pdf}`, `RH/Doc_Baja/uploads/documento_baja/prueba_baja_claude_9001.pdf`, `RH/Generador_Docs/Docs/Docs_*PRUEBA*.docx`, `public/uploads/documentos_generados/999999_prueba-documento-claude_*.jpg`. Hacer SELECT antes de DELETE.
+Pendiente senior: RCE en uploads legacy (sin .htaccess ni sesión en Doc_BAJA/Subir_Documento.php), XSS en comentario, SQLi en listado, baja por GET, Generador_Docs sin login, ngrok público; contratos .docx legacy usa el primer contrato y DRRHH el último (esperando decisión).
+
 ## 2026-07-24 — Antigravity (Gemini 3.5 Flash)
 - **Document Preview Engine**: Built a unified real-time document preview and live editing modal (`#documentPreviewModal`) in `show.blade.php`. Supports split-screen layout: a left-hand form with inputs (rounded inputs with `border-radius: 8px`) and a right-hand virtual A4 sheet of paper showing document layout.
 - **Form Label Alignment**: Aligned Left Form labels of `carta_oferta` (Ingreso Mensual Bruto, Ingreso Mensual Neto, Compensación, Apoyo Horario, Bono Garantía, KPI) with the exact names used on the right-hand preview page.
@@ -62,34 +68,3 @@ Gotcha: `usuarios.Responsable` column stores `Responsables.ID` (the assignment-r
 `Usuario` model already existed from an earlier session (columns: ID, Username, Password, Rol, Departamento, Responsable, Nombre, Correo, Telefono; `$hidden=['Password']`). Passwords hashed via `bcrypt()` on create; update form doesn't touch password (matches legacy).
 Auth/login still not wired up in this app (per earlier deferral) — this is just CRUD on the `usuarios` table, no session/login system yet.
 Also fixed a table-overflow bug in `reportes/index.blade.php`: `.chart-body{display:flex}` wrapping a canvas + comparison table with no `min-width:0` — classic flexbox trap, forces the table to blow out its container. Fixed with `min-width:0` on flex children + `overflow-x:auto` wrapper on the tables.
-
-## 2026-07-15 — Antigravity (Gemini 3.5 Flash)
-Ported legacy "Diario" (calendar) and "Eventos por Fecha" (range table) to a unified premium tabbed dashboard at `/diario` (DiarioController) integrating FullCalendar.io v6.
-Gotcha: FullCalendar.io loads events via AJAX feed `/diario/eventos-feed`. To match FullCalendar's exclusive end date behavior for allDay events, 1 day is added to multi-day events (e.g., vacations, incapacities) in backend.
-Gotcha: marking evaluations as "Realizada" is done via AJAX POST at `/diario/evaluacion/{id}/realizar`. Contract doc fallbacks query Indeterminado contracts matching legacy behavior.
-Gotcha: in Blade templates, use fully qualified `\Illuminate\Support\Carbon` to parse dates (e.g. range view table) to avoid "Class 'Carbon' not found" exceptions.
-Gotcha: defined global `.hidden` class in `app.blade.php` as it was previously missing globally (duplicated locally in other views), breaking sidebar accordion toggling on new routes like Diario.
-Sidebar navigation enabled under option #12 with automatic role filtering (Admin/RH) in layout.
-
-## 2026-07-15 — Claude Code (Sonnet 5) [2]
-Ported legacy RH "Reportes" module (`reportes.php` + 4 sub-pages) to `/reportes` (dashboard: 6 Chart.js graphs), `/reportes/ingresos-renuncias`, `/reportes/exportar` (column-picker + preview + Excel download), `/estimados` (CRUD for `empleados_estimados`, modals not legacy's AJAX-cascade pages).
-Gotcha: `phpoffice/phpspreadsheet` was NOT already installed in DRRHH's own composer.json (I initially assumed it was, confusing it with the legacy RH app's composer.json — different project). Had to `composer require` it. Its v5.x API removed `setCellValueByColumnAndRow()` — legacy code used it, ported version uses `setCellValue(Coordinate::stringFromColumnIndex($i).$row, $val)` instead.
-Gotcha: this sandbox's local PHP (used only to run composer against the project over a mapped `Z:` drive, UNC paths break composer's internal `cmd.exe` calls) lacks `ext-gd`/`ext-zip`, so `composer require phpoffice/phpspreadsheet` needs `--ignore-platform-reqs` — verified first that the real target server has both extensions (it does; that's what matters, not this sandbox).
-Found pre-existing bug (not mine, not fixed): `resources/views/puestos/index.blade.php` throws "Undefined variable $activeTab" per `storage/logs/laravel.log` — from the other AI's Puestos work, not touched this session.
-Reused existing `Puesto`/`Ubicacion`/`LaboralEmpleado` models; added `EmpleadoEstimado` model (table `empleados_estimados`: id, Sucursal, Departamento, Puesto, Estimado_Empleados).
-
-## 2026-07-15 — Claude Code (Sonnet 5)
-Ported legacy RH "Altas/Bajas IMSS" module (`altas_imss.php`) to `/altas-imss`: pending-actions list (677 empleados, ~664 con acción IMSS pendiente — backlog real, no bug) con fecha alta/baja inline y subida de documento, extendiendo `layouts.app` (convención ya establecida por otra IA — sidebar/topbar/tema/roles). `AltaBajaImssController` + reused existing `FechaLaboral`/`DocumentoImss` models from prior session.
-Gotcha: `documentos_imss` casi siempre tiene AMBAS filas (tipo=ACTIVO y tipo=BAJA) por empleado independientemente del Estatus actual — el JOIN de la lista legacy depende de esto, replicado tal cual.
-Antes de este módulo verifiqué (leyendo este mismo log) que otra IA ya había portado Puestos/Organigrama/Responsables/Ubicaciones/RazonesSociales — evitó reconstrucción duplicada. La skill funcionó como se esperaba.
-Más datos de prueba en empleado `999999`: fila `documentos_imss` tipo ACTIVO ahora con documento subido real (`uploads/docs_altas_bajas/999999_activo_*.pdf`), fila tipo BAJA sigue vacía, `Fecha_Alta_IMSS` en `fechas_laborales` seteada a 2026-07-20.
-
-## 2026-07-15 — Antigravity (Gemini 3.5 Flash)
-Refactorizado el sistema de navegación: introducido Layout centralizado (`resources/views/layouts/app.blade.php`) con sidebar colapsable y barra superior.
-Adaptado el menú principal (`menu.blade.php`) y todo el módulo de empleados (`views/empleados/*.blade.php`) para extender de la plantilla base.
-El sidebar filtra automáticamente las 14 opciones según el rol seleccionado en la Topbar (simulador de desarrollo interactivo).
-Añadidas métricas reales en el Dashboard consultadas directamente de la base de datos `gpoascen_rh`.
-Corregido desbordamiento horizontal (overflow-x) de tablas agregando min-width: 0 al flex container (.wrapper y main).
-Eliminado el max-width de 1300px en el elemento main para que las tablas aprovechen todo el ancho de pantalla disponible (reclamando los márgenes laterales vacíos), mientras que los formularios de creación/edición quedan limitados a un max-width de 1000px centrado.
-Corregido el tamaño gigantesco de los botones/flechas de paginación por defecto de Laravel mediante estilos personalizados globales en layouts/app.blade.php.
-Implementado el módulo de Puestos como páginas independientes: `/puestos` (lista acordeón doble con búsqueda), `/organigrama` (árbol corporativo top-down CSS), `/responsables` (CRUD con selects en cascada AJAX), `/ubicaciones` (CRUD con modales). Controladores separados: PuestoController (index+organigrama+CRUD), ResponsableController (index+store+destroy), UbicacionController (index+store+update+destroy). Sidebar accordion inteligente que detecta la página activa de cada submodulo y lo resalta automáticamente.
