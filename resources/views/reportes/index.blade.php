@@ -14,10 +14,8 @@
     .btn-primary:hover { opacity: 0.9; }
     .btn-secundario { background-color: var(--bg-page); border: 1px solid var(--border-color); color: var(--text-main); }
 
-    .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; min-width: 0; }
+    .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; min-width: 0; }
     .chart-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 1.5rem; box-shadow: var(--shadow-sm); min-width: 0; }
-    /* Celular: min(420px, 100%) arriba evita que la gráfica pida más ancho que la pantalla */
-    @media (max-width: 640px) { .chart-card { padding: 1rem; } }
     .chart-card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
     .chart-body { display: flex; gap: 1.25rem; align-items: center; min-width: 0; }
     .chart-body canvas { flex: 1; max-height: 280px; min-width: 0; }

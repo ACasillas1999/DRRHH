@@ -214,12 +214,6 @@
         align-items: start;
     }
 
-    /* Sin esto las columnas del grid crecen al ancho de su contenido (tablas nowrap, calendario)
-       y empujan toda la página hacia la derecha. Con min-width: 0 las tablas usan su propio scroll. */
-    .show-grid > * {
-        min-width: 0;
-    }
-
     @media (max-width: 1100px) {
         .show-grid {
             grid-template-columns: 1fr;
@@ -753,101 +747,6 @@
 
     .preview-form-col input:focus, .preview-form-col select:focus, .preview-form-col textarea:focus {
         border-color: var(--primary) !important;
-    }
-
-    /* ----- RESPONSIVO (celular y tablet) ----- */
-    /* Los botones Generar/Subir bajan de renglón si no caben */
-    .action-btn-group {
-        flex-wrap: wrap;
-    }
-
-    .premium-table tbody td:has(.action-btn-group) {
-        white-space: normal;
-    }
-
-    @media (max-width: 900px) {
-        /* Modal de vista previa: formulario arriba y hoja abajo, en lugar de lado a lado */
-        .preview-modal-overlay {
-            padding: 0.5rem;
-        }
-
-        .preview-modal-box {
-            height: 95vh;
-        }
-
-        .preview-modal-body {
-            grid-template-columns: 1fr;
-            overflow-y: auto;
-        }
-
-        .preview-form-col {
-            border-right: none;
-            border-bottom: 1px solid var(--border-color);
-            overflow-y: visible;
-        }
-
-        .preview-sheet-col {
-            padding: 1rem;
-            overflow-y: visible;
-        }
-
-        .paper-sheet {
-            min-height: 0;
-            padding: 1.5rem 1.25rem;
-        }
-    }
-
-    @media (max-width: 640px) {
-        /* Banner más compacto; el botón "Volver" deja de flotar encima de la foto */
-        .employee-banner {
-            padding: 1rem;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .back-btn-float {
-            position: static;
-        }
-
-        .banner-left {
-            gap: 1rem;
-        }
-
-        .banner-foto {
-            width: 70px;
-            height: 70px;
-        }
-
-        .banner-text h1 {
-            font-size: 1.2rem;
-        }
-
-        .banner-right {
-            align-items: flex-start;
-            flex-direction: row;
-            flex-wrap: wrap;
-        }
-
-        /* Pestañas en 2 columnas para que las 5 quepan */
-        .tabs-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .detail-card,
-        .contact-row-card {
-            padding: 1rem;
-        }
-
-        /* Toolbar del calendario: título arriba y botones abajo */
-        .fc .fc-header-toolbar {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .fc .fc-toolbar-title {
-            font-size: 1rem;
-        }
     }
 </style>
 @endpush

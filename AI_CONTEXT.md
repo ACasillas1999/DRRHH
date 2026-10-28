@@ -4,10 +4,6 @@ Shared handoff notes for any AI tool editing this project. See `.claude/skills/a
 for the read/write rules. Capped at 10 entries, most recent first.
 
 ## 2026-10-27 — Claude Code (Opus 5.5)
-Responsivo global: 28 páginas sin scroll lateral en 390/768/1024/1366. Causa típica = grid blowout → `min-width: 0` en hijos del grid (show, checadores); `minmax(min(420px,100%),1fr)` en reportes. Diario: `dayMaxEvents: 3` solo ≤1024px (en PC un día con ~440 eventos sigue estirando la página 12k px; pendiente decidir si limitar también).
-Salario en letras ahora "X PESOS CON Y CENTAVOS" (0 → "CON CERO CENTAVOS", 1 → "UN CENTAVO") en DRRHH + legacy GenerarDoc.php/Determinado.php (legacy no está en git: subir a prod a mano).
-
-## 2026-10-27 — Claude Code (Opus 5.5)
 Empleados (show/alta/documentos) llevado a paridad con legacy `RH/Detalles_Empleado.php` completo (expediente, baja, machotes, ficha, folio solo en BAJA, fechas laborales en calendario, botón Inventario → `/inventario` página "en mantenimiento"). Regla del usuario: igualar legacy, desviarse solo por seguridad/corrupción de datos y decirlo.
 Gotchas: legacy guarda en hora México (usar `now('America/Mexico_City')`, app en UTC); legacy no-estricto guarda '' en NOT NULL (DRRHH strict truena con null); desde la PC del dev `DB_HOST=localhost` NO es el .117 → no hay acceso SQL directo; .142 = producción, nunca probar ahí.
 PENDIENTE limpieza datos de prueba (usuario no pudo entrar a phpMyAdmin): filas de prueba en documentos_generados/Documento_Baja/contratos 3040-3043/historial_cambios (2 filas vacías "Se eliminó un documento personal -   - del Empleado: ") de 9001/9002/9999/999999 (+ datos IMSS del 999999); revisar foto del 1434 antes de borrar `RH/Fotos_Empleados/prueba_foto_claude*.png`; archivos `RH/uploads/documentos/{prueba_ficha_claude*.pdf,s.pdf}`, `RH/Doc_Baja/uploads/documento_baja/prueba_baja_claude_9001.pdf`, `RH/Generador_Docs/Docs/Docs_*PRUEBA*.docx`, `public/uploads/documentos_generados/999999_prueba-documento-claude_*.jpg`. Hacer SELECT antes de DELETE.
@@ -65,3 +61,10 @@ Role→module mapping mirrors the sidebar's pre-existing `data-roles` attributes
 Sidebar (`layouts/app.blade.php`): removed the "Simular Rol" `<select>` + its JS entirely; `filterMenuByRole()` now called once on load with the real `auth()->user()->Rol`; profile widget (avatar/name/role label) wired to the real user; logout is now a real `POST /logout` form (was `href="#logout"` placeholder).
 Verified end-to-end via a throwaway `Usuario` (created/role-switched/deleted through temporary debug routes, cleaned up after): login, protected-route redirect-to-login when logged out, role-gated 403 (RH hitting `/usuarios`), role change reflected without re-login (session only stores user ID, re-fetches model per request), logout invalidating the session.
 Deferred (matches legacy, user confirmed): no remember-me, no password reset, no self-registration — accounts are created by an Admin via `/usuarios`.
+
+## 2026-07-16 — Claude Code (Sonnet 5)
+Ported legacy RH "Usuarios" module (`usuarios.php` + Agregar/Actualizar_Usuario.php) to `/usuarios`: list + modal crear/editar, cascading Departamento→Responsable select (fetch API `/api/usuarios/responsables`, mirrors legacy `get_responsables.php`). No delete — legacy never had one either.
+Gotcha: `usuarios.Responsable` column stores `Responsables.ID` (the assignment-row ID), NOT the employee's `N_Empleado` — confirmed from legacy's own dropdown `value="${responsable.ID}"`. Easy to get backwards since the column name suggests otherwise.
+`Usuario` model already existed from an earlier session (columns: ID, Username, Password, Rol, Departamento, Responsable, Nombre, Correo, Telefono; `$hidden=['Password']`). Passwords hashed via `bcrypt()` on create; update form doesn't touch password (matches legacy).
+Auth/login still not wired up in this app (per earlier deferral) — this is just CRUD on the `usuarios` table, no session/login system yet.
+Also fixed a table-overflow bug in `reportes/index.blade.php`: `.chart-body{display:flex}` wrapping a canvas + comparison table with no `min-width:0` — classic flexbox trap, forces the table to blow out its container. Fixed with `min-width:0` on flex children + `overflow-x:auto` wrapper on the tables.

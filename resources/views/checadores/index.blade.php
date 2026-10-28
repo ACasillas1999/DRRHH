@@ -293,11 +293,6 @@
         align-items: start;
     }
 
-    /* Evita que la tabla ancha empuje las columnas fuera de pantalla; la tabla usa su propio scroll */
-    .checadores-grid > * {
-        min-width: 0;
-    }
-
     @media (max-width: 992px) {
         .checadores-grid {
             grid-template-columns: 1fr;

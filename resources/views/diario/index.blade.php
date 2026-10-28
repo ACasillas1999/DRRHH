@@ -1337,9 +1337,6 @@
             initialView: 'dayGridMonth',
             locale: 'es',
             height: 'auto',
-            // Celular/tablet: máximo 3 eventos por día + enlace "+N más"; sin esto un día con cientos
-            // de eventos estira la página miles de pixeles. En PC se ve igual que antes (sin límite).
-            dayMaxEvents: window.innerWidth <= 1024 ? 3 : false,
             firstDay: 1, // Lunes es primer día de la semana
             headerToolbar: {
                 left: 'prev,next today',

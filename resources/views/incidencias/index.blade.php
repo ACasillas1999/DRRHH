@@ -1347,29 +1347,6 @@
     .hidden {
         display: none !important;
     }
-
-    /* ----- RESPONSIVO (celular) ----- */
-    @media (max-width: 640px) {
-        /* Las pestañas se deslizan de lado en lugar de salirse de la pantalla */
-        .incidencias-tabs {
-            overflow-x: auto;
-        }
-
-        .tab-btn {
-            white-space: nowrap;
-            padding: 0.75rem 0.85rem;
-        }
-
-        /* Cada filtro ocupa todo el ancho */
-        .filter-group {
-            flex: 1 1 100%;
-            min-width: 0;
-        }
-
-        .filter-group .form-control {
-            width: 100%;
-        }
-    }
 </style>
 @endpush
 
