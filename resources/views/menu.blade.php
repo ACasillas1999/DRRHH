@@ -36,14 +36,14 @@
     }
 
     .hero-title {
-        font-size: 2rem;
+        font-size: 2.5rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
         letter-spacing: -0.02em;
     }
 
     .hero-desc {
-        font-size: 1rem;
+        font-size: 1.25rem;
         opacity: 0.9;
         line-height: 1.5;
         margin-bottom: 1.5rem;
@@ -103,7 +103,7 @@
     }
 
     .stat-label {
-        font-size: 0.85rem;
+        font-size: 1.0rem;
         color: var(--text-muted);
         font-weight: 500;
         text-transform: uppercase;
@@ -148,13 +148,21 @@
 
     /* Accesos Rápidos */
     .section-title {
-        font-size: 1.25rem;
+        font-size: 1.50rem;
         font-weight: 600;
         margin-bottom: 1.25rem;
         letter-spacing: -0.01em;
     }
 
+    /* main en columna para que .actions-grid pueda crecer hasta el fondo de la pantalla.
+       Solo afecta esta página porque este <style> solo se carga en el dashboard */
+    main {
+        display: flex;
+        flex-direction: column;
+    }
+
     .actions-grid {
+        flex-grow: 1;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1.5rem;
@@ -174,7 +182,7 @@
     }
 
     .action-card-title {
-        font-size: 1.1rem;
+        font-size: 2.4rem;
         font-weight: 600;
         display: flex;
         align-items: center;
@@ -183,13 +191,13 @@
 
     .action-card-title svg {
         color: var(--primary);
-        width: 22px;
-        height: 22px;
+        width: 30px;
+        height: 30px;
     }
 
     .action-card-desc {
         color: var(--text-muted);
-        font-size: 0.85rem;
+        font-size: 1.05rem;
         line-height: 1.4;
     }
 
@@ -208,7 +216,7 @@
         border-radius: 10px;
         color: var(--text-main);
         text-decoration: none;
-        font-size: 0.9rem;
+        font-size: 1.5rem;
         font-weight: 500;
         transition: background-color 0.15s ease, color 0.15s ease;
     }
