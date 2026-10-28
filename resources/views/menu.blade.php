@@ -171,13 +171,6 @@
         text-decoration: none;
         color: inherit;
         box-shadow: var(--shadow-sm);
-        transition: all 0.2s ease;
-    }
-
-    .action-card:hover {
-        transform: translateY(-3px);
-        border-color: var(--primary);
-        box-shadow: var(--shadow-md);
     }
 
     .action-card-title {
@@ -198,6 +191,31 @@
         color: var(--text-muted);
         font-size: 0.85rem;
         line-height: 1.4;
+    }
+
+    /* Links dentro de cada apartado */
+    .action-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .action-links a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.6rem 0.75rem;
+        border-radius: 10px;
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .action-links a:hover {
+        background-color: var(--primary-light);
+        color: var(--primary);
     }
 </style>
 @endpush
@@ -299,31 +317,67 @@
 
     <!-- Accesos Rápidos Principales -->
     <h2 class="section-title">Accesos Rápidos</h2>
+    @php
+        // Mismos roles que los middleware 'role:' de routes/web.php, para no mostrar links que darían 403
+        $rol = auth()->user()->Rol;
+        $esRH = in_array($rol, ['Admin', 'RH']);
+        $veEmpleados = in_array($rol, ['Admin', 'RH', 'Nominas']);
+    @endphp
     <div class="actions-grid">
-        <a class="action-card" href="{{ route('empleados.crear') }}">
+        @if($esRH)
+        <div class="action-card">
             <div class="action-card-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="8.5" cy="7" r="4"></circle>
-                    <line x1="20" y1="8" x2="20" y2="14"></line>
-                    <line x1="17" y1="11" x2="23" y2="11"></line>
+                    <circle cx="10" cy="7" r="4"></circle>
+                    <path d="M10.3 15H7a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="17" cy="17" r="3"></circle>
+                    <path d="m21 21-1.9-1.9"></path>
                 </svg>
-                Registrar Nuevo Empleado
+                Atracción de Talento
             </div>
-            <p class="action-card-desc">Carga la información personal, laboral y contractual de un nuevo colaborador al sistema.</p>
-        </a>
+            <p class="action-card-desc">Da seguimiento a los candidatos y a sus procesos de reclutamiento.</p>
+            <div class="action-links">
+                <a href="{{ route('reclutamiento.index') }}">Reclutamiento <span>&rsaquo;</span></a>
+            </div>
+        </div>
+        @endif
 
-        <a class="action-card" href="{{ route('empleados.index') }}">
+        @if($veEmpleados)
+        <div class="action-card">
             <div class="action-card-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
                 </svg>
-                Expedientes Digitales
+                Administración de Personal
             </div>
-            <p class="action-card-desc">Consulta detalles, actualiza información de contacto, genera contratos o sube documentación de IMSS.</p>
-        </a>
+            <p class="action-card-desc">Expedientes, altas de colaboradores, asistencia y eventos del día.</p>
+            <div class="action-links">
+                <a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>
+                <a href="{{ route('empleados.crear') }}">Registrar empleado <span>&rsaquo;</span></a>
+                @if($esRH)
+                <a href="{{ route('incidencias.index') }}">Incidencias <span>&rsaquo;</span></a>
+                <a href="{{ route('diario.index') }}">Diario <span>&rsaquo;</span></a>
+                @endif
+            </div>
+        </div>
+        @endif
+
+        @if($esRH)
+        <div class="action-card">
+            <div class="action-card-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                    <polyline points="16 7 22 7 22 13"></polyline>
+                </svg>
+                Desarrollo Organizacional
+            </div>
+            <p class="action-card-desc">Estructura de puestos y reportes de la plantilla.</p>
+            <div class="action-links">
+                <a href="{{ route('organigrama.index') }}">Organigrama <span>&rsaquo;</span></a>
+                <a href="{{ route('reportes.index') }}">Reportes <span>&rsaquo;</span></a>
+            </div>
+        </div>
+        @endif
     </div>
 @endsection
