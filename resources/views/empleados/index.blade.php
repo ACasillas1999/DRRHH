@@ -5,6 +5,13 @@
 
 @push('styles')
 <style>
+    .top-row {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
     .btn {
         display: inline-flex;
         align-items: center;
@@ -24,32 +31,31 @@
         background-color: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 16px;
-        padding: 0.85rem 1rem; /* compacto: menos espacio vacío arriba de la tabla */
+        padding: 1.25rem;
         box-shadow: var(--shadow-sm);
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
     }
 
     .filtros-grid {
         display: grid;
-        /* 140px mínimo: en laptop los 6 filtros caben en un solo renglón */
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 0.6rem;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 0.75rem;
         align-items: end;
     }
 
     .campo label {
         display: block;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         font-weight: 600;
         color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.03em;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.35rem;
     }
 
     select, input[type="text"] {
         width: 100%;
-        padding: 0.4rem 0.6rem;
+        padding: 0.5rem 0.65rem;
         border-radius: 8px;
         border: 1px solid var(--border-color);
         background-color: var(--bg-page);
@@ -58,15 +64,10 @@
         font-size: 0.85rem;
     }
 
-    /* Filtrar, Limpiar y "+ Agregar Empleado" en un renglón propio debajo de los filtros */
     .filtros-acciones {
         display: flex;
-        flex-wrap: wrap;
         gap: 0.5rem;
-        margin-top: 0.6rem;
     }
-    .filtros-acciones .btn { padding: 0.45rem 0.9rem; }
-    .filtros-acciones .btn-agregar { margin-left: auto; } /* empuja el botón a la derecha */
 
     .btn-secundario {
         background-color: var(--bg-page);
@@ -90,7 +91,7 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: var(--text-muted);
-        padding: 0.55rem 0.75rem; /* más compacto para que quepan más filas en pantalla */
+        padding: 0.7rem 1rem; /* más compacto para que quepan más filas en pantalla */
         border-bottom: 1px solid var(--border-color);
         white-space: nowrap;
         cursor: pointer;
@@ -99,10 +100,9 @@
     thead th:hover { color: var(--primary); }
 
     tbody td {
-        padding: 0.35rem 0.75rem; /* filas compactas */
+        padding: 0.5rem 1rem; /* filas compactas */
         border-bottom: 1px solid var(--border-color);
-        font-size: 0.82rem;
-        line-height: 1.25;
+        font-size: 0.85rem;
         white-space: nowrap;
     }
 
@@ -117,10 +117,10 @@
     .ver-link:hover { text-decoration: underline; }
 
     /* Nombre, Puesto y Razón Social pueden partirse en dos líneas para que la tabla quepa sin deslizar a los lados */
-    tbody td.celda-larga { white-space: normal; min-width: 150px; max-width: 260px; }
+    tbody td.celda-larga { white-space: normal; min-width: 150px; max-width: 220px; }
     /* Dato secundario debajo del principal (Departamento, Sucursal Física) */
-    .sub-dato { display: block; font-size: 0.72rem; color: var(--text-muted); }
-    .sub-link { display: block; font-size: 0.72rem; }
+    .sub-dato { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem; }
+    .sub-link { display: block; font-size: 0.75rem; margin-top: 0.15rem; }
     tbody tr[data-href] { cursor: pointer; }
 
     /* Tablet vertical: se oculta Fecha Ingreso para que no haya scroll lateral (se ve en el detalle) */
@@ -147,6 +147,10 @@
 @endpush
 
 @section('content')
+    <div class="top-row">
+        <a class="btn btn-primary" href="{{ route('empleados.crear') }}">+ Agregar Empleado</a>
+    </div>
+
     <!-- Filtros de Búsqueda -->
     <form class="filtros-card" method="GET" action="{{ route('empleados.index') }}" id="formFiltros">
         <div class="filtros-grid">
@@ -200,11 +204,10 @@
                 {{-- Como el legacy: busca en vivo en todas las columnas de la tabla (sin name, no se envía con los filtros) --}}
                 <input type="text" id="buscarTabla" onkeyup="buscarEnTabla()" placeholder="Buscar en todos los campos...">
             </div>
-        </div>
-        <div class="filtros-acciones">
-            <button type="submit" class="btn btn-primary">Filtrar</button>
-            <a href="{{ route('empleados.index') }}" class="btn btn-secundario">Limpiar</a>
-            <a class="btn btn-primary btn-agregar" href="{{ route('empleados.crear') }}">+ Agregar Empleado</a>
+            <div class="campo filtros-acciones">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+                <a href="{{ route('empleados.index') }}" class="btn btn-secundario">Limpiar</a>
+            </div>
         </div>
     </form>
 
