@@ -40,7 +40,16 @@ Route::middleware('auth')->group(function () {
         $totalEmpleados = Personal::count();
         $activos = LaboralEmpleado::where('Estatus', 'ACTIVO')->count();
         $bajas = LaboralEmpleado::where('Estatus', 'BAJA')->count();
-        return view('menu', compact('totalEmpleados', 'activos', 'bajas'));
+
+        // Sexo vive en personales y Estatus en laborales_empleado → whereHas cruza ambas
+        $hombres = Personal::where('Sexo', 'Masculino')
+            ->whereHas('laboral', fn ($q) => $q->where('Estatus', 'ACTIVO'))
+            ->count();
+        $mujeres = Personal::where('Sexo', 'Femenino')
+            ->whereHas('laboral', fn ($q) => $q->where('Estatus', 'ACTIVO'))
+            ->count();
+
+        return view('menu', compact('totalEmpleados', 'activos', 'bajas', 'hombres', 'mujeres'));
     });
 
     Route::get('/test-db', function () {

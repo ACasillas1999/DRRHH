@@ -121,6 +121,30 @@
     .icon-blue { background-color: var(--primary-light); color: var(--primary); }
     .icon-green { background-color: rgba(22, 163, 74, 0.1); color: var(--activo); }
     .icon-red { background-color: rgba(220, 38, 38, 0.1); color: var(--baja); }
+    .icon-pink { background-color: rgba(219, 39, 119, 0.1); color: #db2777; }
+
+    /* Tarjeta doble: Hombres | Mujeres */
+    .stat-card-double {
+        grid-column: span 2;
+        justify-content: space-around;
+    }
+
+    .stat-half {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .stat-divider {
+        width: 1px;
+        align-self: stretch;
+        background-color: var(--border-color);
+    }
+
+    @media (max-width: 640px) {
+        .stat-card-double { grid-column: auto; flex-wrap: wrap; gap: 1rem; }
+        .stat-divider { display: none; }
+    }
 
     /* Accesos Rápidos */
     .section-title {
@@ -210,6 +234,38 @@
             <div class="stat-info">
                 <span class="stat-label">Total Empleados</span>
                 <span class="stat-val">{{ $totalEmpleados }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-card-double">
+            <div class="stat-half">
+                <div class="stat-icon icon-blue">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 3h5v5"></path>
+                        <path d="m21 3-6.75 6.75"></path>
+                        <circle cx="10" cy="14" r="6"></circle>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Hombres</span>
+                    <span class="stat-val">{{ $hombres }}</span>
+                </div>
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <div class="stat-half">
+                <div class="stat-icon icon-pink">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 15v7"></path>
+                        <path d="M9 19h6"></path>
+                        <circle cx="12" cy="9" r="6"></circle>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Mujeres</span>
+                    <span class="stat-val">{{ $mujeres }}</span>
+                </div>
             </div>
         </div>
 
