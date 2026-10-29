@@ -547,6 +547,17 @@
     }
     .item-puesto-nombre { font-weight: 600; font-size: 0.875rem; }
     .item-puesto-desc { font-size: 0.8rem; color: var(--text-muted); }
+    .item-puesto-funciones-titulo { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .item-puesto-funciones {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        margin: 0;
+        padding-left: 1.1rem;
+        font-size: 0.8rem;
+        line-height: 1.45;
+        color: var(--text-main);
+    }
 
     .col-vacia { padding: 1.5rem 0.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
 
@@ -653,7 +664,20 @@
                             @foreach($puestosList as $p)
                                 <div class="item-puesto hidden" data-sub="{{ $s }}">
                                     <span class="item-puesto-nombre">{{ $p->Nombre_Puesto }}</span>
-                                    <span class="item-puesto-desc">{{ $p->Descripcion ?: 'Sin descripción' }}</span>
+                                    @if (trim($p->Descripcion ?? '') === '')
+                                        <span class="item-puesto-desc">Sin descripción</span>
+                                    @else
+                                        {{-- Igual que el legacy: cada renglón de la descripción es una función --}}
+                                        <span class="item-puesto-funciones-titulo">Funciones:</span>
+                                        <ul class="item-puesto-funciones">
+                                            @foreach (preg_split('/\r\n|\r|\n/', trim($p->Descripcion)) as $funcion)
+                                                @if (trim($funcion) !== '')
+                                                    <li>{{ trim($funcion) }}</li>
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    @endif
+
                                     <div class="acciones-cell">
                                         <button type="button" class="ver-link" onclick="abrirModalPuesto(this)"
                                             data-url="{{ route('puestos.update', $p->ID) }}" data-id="{{ $p->ID }}"
