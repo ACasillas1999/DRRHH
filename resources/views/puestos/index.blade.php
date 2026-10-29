@@ -471,7 +471,7 @@
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 1rem;
-        align-items: start;
+        align-items: stretch;
     }
 
     .columna {
@@ -635,7 +635,7 @@
                                     <span class="item-puesto-desc">{{ $p->Descripcion ?: 'Sin descripción' }}</span>
                                     <div class="acciones-cell">
                                         <a class="ver-link" href="{{ route('puestos.edit', $p->ID) }}">Editar</a>
-                                            <form method="POST" action="{{ route('puestos.destroy', $p->ID) }}" data-confirm="¿Estás seguro de que deseas eliminar este puesto de trabajo?" data-confirm-ok="Eliminar" data-confirm-peligro style="display:inline;">
+                                        <form method="POST" action="{{ route('puestos.destroy', $p->ID) }}" data-confirm="¿Estás seguro de que deseas eliminar este puesto de trabajo?" data-confirm-ok="Eliminar" data-confirm-peligro style="display:inline;">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-eliminar-link">Eliminar</button>

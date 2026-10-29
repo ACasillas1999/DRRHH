@@ -617,7 +617,7 @@
         .pagination-wrap .shadow-sm > *:last-child span {
             border-right: none !important;
         }
-        
+
         /* ----- MODAL DE CONFIRMACION GLOBAL ----- */
         .confirm-overlay {
             display: none;
@@ -1169,7 +1169,6 @@
             }
         }
 
-        
         // Modal de confirmación global: cualquier <form data-confirm="mensaje"> lo usa en lugar del confirm() nativo
         document.addEventListener('submit', function (e) {
             const form = e.target;
@@ -1197,7 +1196,7 @@
         document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarConfirmModal(); });
 
     </script>
-     <!-- Modal de confirmación global (lo abre cualquier <form data-confirm="...">) -->
+    <!-- Modal de confirmación global (lo abre cualquier <form data-confirm="...">) -->
     <div class="confirm-overlay" id="confirmModal" onclick="if (event.target === this) cerrarConfirmModal()">
         <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitulo">
             <h3 class="confirm-titulo" id="confirmModalTitulo">Confirmar acción</h3>
