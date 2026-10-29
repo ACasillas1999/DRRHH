@@ -465,6 +465,97 @@
         color: var(--primary);
         border-color: var(--primary);
     }
+
+        /* Vista de 3 columnas: Departamentos | Subdepartamentos | Puestos */
+    .columnas-puestos {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+        align-items: start;
+    }
+
+    .columna {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .columna-titulo {
+        padding: 0.85rem 1.1rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .columna-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 0.75rem;
+        max-height: 65vh;
+        overflow-y: auto;
+    }
+
+    .item-col {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        background: none;
+        font-family: inherit;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-main);
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+    .item-col:hover { background-color: var(--bg-card-hover); }
+    .item-col.active {
+        background-color: var(--primary-light);
+        color: var(--primary);
+        border-color: rgba(29, 78, 216, 0.15);
+    }
+
+    .badge-col {
+        flex-shrink: 0;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.15rem 0.45rem;
+        border-radius: 6px;
+        background-color: var(--border-color);
+        color: var(--text-muted);
+    }
+    .item-col.active .badge-col { background-color: var(--primary); color: white; }
+
+    .item-puesto {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 0.75rem 0.85rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+    }
+    .item-puesto-nombre { font-weight: 600; font-size: 0.875rem; }
+    .item-puesto-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+    .col-vacia { padding: 1.5rem 0.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+
+    /* Tablet y celular: columnas una debajo de otra */
+    @media (max-width: 900px) {
+        .columnas-puestos { grid-template-columns: 1fr; }
+        .columna-lista { max-height: none; }
+    }
+
 </style>
 @endpush
 
@@ -493,100 +584,104 @@
         </div>
     </form>
 
-    <div style="display: flex; flex-direction: column; gap: 1rem;">
-        @forelse($puestosGrouped as $departamento => $subdepartamentosList)
-            @php
-                $isExpanded = !empty($busqueda);
-                $totalDeptPuestos = 0;
-                foreach($subdepartamentosList as $sub => $list) {
-                    $totalDeptPuestos += count($list);
-                }
-            @endphp
-            <div class="puestos-dept-group" style="display: flex; flex-direction: column;">
-                <!-- Botón de Acordeón de Departamento -->
-                <div class="org-node org-dep-node {{ $isExpanded ? 'active' : '' }}" onclick="togglePuestosNode(this)" style="display: flex; justify-content: space-between; border-radius: 12px; margin-bottom: 0;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <svg class="chevron-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        <span style="font-weight: 700; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.02em;">{{ $departamento }}</span>
-                    </div>
-                    <span style="font-size: 0.75rem; background-color: var(--primary); color: white; padding: 0.25rem 0.55rem; border-radius: 8px; font-weight: 700;">
-                        {{ $totalDeptPuestos }} {{ $totalDeptPuestos == 1 ? 'Puesto' : 'Puestos' }}
-                    </span>
-                </div>
-
-                <!-- Contenedor del Departamento (Subdepartamentos) -->
-                <div class="puestos-table-container {{ $isExpanded ? '' : 'hidden' }}" style="border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 12px 12px; padding: 1rem; background-color: var(--bg-page); display: flex; flex-direction: column; gap: 0.75rem;">
-                    @foreach($subdepartamentosList as $subdepartamento => $puestosList)
-                        <div class="puestos-subdept-group" style="display: flex; flex-direction: column;">
-                            <!-- Botón de Acordeón de Subdepartamento -->
-                            <div class="org-node org-sub-node {{ $isExpanded ? 'active' : '' }}" onclick="toggleSubPuestosNode(this)" style="display: flex; justify-content: space-between; border-radius: 8px; margin-bottom: 0; padding: 0.5rem 1.1rem;">
-                                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <svg class="chevron-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                                    <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">{{ $subdepartamento }}</span>
-                                </div>
-                                <span style="font-size: 0.7rem; background-color: var(--border-color); color: var(--text-muted); padding: 0.15rem 0.45rem; border-radius: 6px; font-weight: 700;">
-                                    {{ count($puestosList) }} {{ count($puestosList) == 1 ? 'Puesto' : 'Puestos' }}
-                                </span>
-                            </div>
-
-                            <!-- Tabla de Puestos del Subdepartamento -->
-                            <div class="puestos-subtable-container {{ $isExpanded ? '' : 'hidden' }}" style="border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; padding: 0.75rem; background-color: var(--bg-card);">
-                                <div class="table-card" style="box-shadow: none; border: none; border-radius: 0; overflow-x: auto;">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Puesto</th>
-                                                <th>Descripción</th>
-                                                <th>Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($puestosList as $p)
-                                                <tr>
-                                                    <td><strong>{{ $p->Nombre_Puesto }}</strong></td>
-                                                    <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $p->Descripcion }}">
-                                                        {{ $p->Descripcion ?: 'Sin descripción' }}
-                                                    </td>
-                                                    <td>
-                                                        <div class="acciones-cell">
-                                                            <a class="ver-link" href="{{ route('puestos.edit', $p->ID) }}">Editar</a>
-                                                            <form method="POST" action="{{ route('puestos.destroy', $p->ID) }}" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este puesto de trabajo?')" style="display:inline;">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn-eliminar-link">Eliminar</button>
-                                                            </form>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+       @if(empty($puestosGrouped))
+        <div class="section-card">
+            <p class="empty-state">No se encontraron puestos de trabajo registrados.</p>
+        </div>
+    @else
+        <div class="columnas-puestos">
+            <!-- Columna 1: Departamentos -->
+            <div class="columna col-dep">
+                <div class="columna-titulo">Departamentos</div>
+                <div class="columna-lista">
+                    @foreach($puestosGrouped as $departamento => $subdepartamentosList)
+                        <button type="button" class="item-col" data-dep="{{ $loop->index }}" onclick="seleccionarDepartamento('{{ $loop->index }}')">
+                            <span>{{ $departamento }}</span>
+                            <span class="badge-col">{{ array_sum(array_map('count', $subdepartamentosList)) }}</span>
+                        </button>
                     @endforeach
                 </div>
             </div>
-        @empty
-            <div class="section-card">
-                <p class="empty-state">No se encontraron puestos de trabajo registrados.</p>
+
+            <!-- Columna 2: Subdepartamentos del departamento seleccionado -->
+            <div class="columna col-sub">
+                <div class="columna-titulo">Subdepartamentos</div>
+                <div class="columna-lista">
+                    <p class="col-vacia">Selecciona un departamento</p>
+                    @foreach($puestosGrouped as $departamento => $subdepartamentosList)
+                        @php $d = $loop->index; @endphp
+                        @foreach($subdepartamentosList as $subdepartamento => $puestosList)
+                            <button type="button" class="item-col hidden" data-dep="{{ $d }}" data-sub="{{ $d }}-{{ $loop->index }}" onclick="seleccionarSubdepartamento('{{ $d }}-{{ $loop->index }}')">
+                                <span>{{ $subdepartamento }}</span>
+                                <span class="badge-col">{{ count($puestosList) }}</span>
+                            </button>
+                        @endforeach
+                    @endforeach
+                </div>
             </div>
-        @endforelse
-    </div>
+
+            <!-- Columna 3: Puestos del subdepartamento seleccionado -->
+            <div class="columna col-puestos">
+                <div class="columna-titulo">Puestos</div>
+                <div class="columna-lista">
+                    <p class="col-vacia">Selecciona un subdepartamento</p>
+                    @foreach($puestosGrouped as $departamento => $subdepartamentosList)
+                        @php $d = $loop->index; @endphp
+                        @foreach($subdepartamentosList as $subdepartamento => $puestosList)
+                            @php $s = $d . '-' . $loop->index; @endphp
+                            @foreach($puestosList as $p)
+                                <div class="item-puesto hidden" data-sub="{{ $s }}">
+                                    <span class="item-puesto-nombre">{{ $p->Nombre_Puesto }}</span>
+                                    <span class="item-puesto-desc">{{ $p->Descripcion ?: 'Sin descripción' }}</span>
+                                    <div class="acciones-cell">
+                                        <a class="ver-link" href="{{ route('puestos.edit', $p->ID) }}">Editar</a>
+                                        <form method="POST" action="{{ route('puestos.destroy', $p->ID) }}" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este puesto de trabajo?')" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-eliminar-link">Eliminar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endforeach
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
 @endsection
 
 @push('scripts')
 <script>
-    function togglePuestosNode(element) {
-        element.classList.toggle('active');
-        const container = element.nextElementSibling;
-        if (container) container.classList.toggle('hidden');
+        // Columna 2: muestra solo los subdepartamentos del departamento elegido
+    function seleccionarDepartamento(dep) {
+        document.querySelectorAll('.col-dep .item-col').forEach(el => el.classList.toggle('active', el.dataset.dep === dep));
+
+        let primero = null;
+        document.querySelectorAll('.col-sub .item-col').forEach(el => {
+            const visible = el.dataset.dep === dep;
+            el.classList.toggle('hidden', !visible);
+            if (visible && !primero) primero = el;
+        });
+        document.querySelector('.col-sub .col-vacia').classList.add('hidden');
+
+        // Selecciona el primer subdepartamento para que la columna 3 no quede vacía
+        if (primero) seleccionarSubdepartamento(primero.dataset.sub);
     }
 
-    function toggleSubPuestosNode(element) {
-        element.classList.toggle('active');
-        const container = element.nextElementSibling;
-        if (container) container.classList.toggle('hidden');
+    // Columna 3: muestra solo los puestos del subdepartamento elegido
+    function seleccionarSubdepartamento(sub) {
+        document.querySelectorAll('.col-sub .item-col').forEach(el => el.classList.toggle('active', el.dataset.sub === sub));
+        document.querySelectorAll('.col-puestos .item-puesto').forEach(el => el.classList.toggle('hidden', el.dataset.sub !== sub));
+        document.querySelector('.col-puestos .col-vacia').classList.add('hidden');
     }
+
+    // Al cargar la página abre el primer departamento
+    document.addEventListener('DOMContentLoaded', () => {
+        const primero = document.querySelector('.col-dep .item-col');
+        if (primero) seleccionarDepartamento(primero.dataset.dep);
+    });
+
 </script>
 @endpush
