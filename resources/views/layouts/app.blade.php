@@ -617,6 +617,46 @@
         .pagination-wrap .shadow-sm > *:last-child span {
             border-right: none !important;
         }
+        
+        /* ----- MODAL DE CONFIRMACION GLOBAL ----- */
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background-color: rgba(15, 23, 42, 0.5);
+        }
+        .confirm-overlay.abierto { display: flex; }
+
+        .confirm-box {
+            width: 100%;
+            max-width: 420px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        .confirm-titulo { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .confirm-msg { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.5rem; }
+        .confirm-acciones { display: flex; justify-content: flex-end; gap: 0.75rem; }
+
+        .confirm-btn {
+            padding: 0.6rem 1.1rem;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .confirm-btn-cancelar { background-color: var(--bg-page); border-color: var(--border-color); color: var(--text-main); }
+        .confirm-btn-ok { background-color: var(--primary); color: white; }
+        .confirm-btn-ok.confirm-btn-peligro { background-color: var(--baja); }
+
     </style>
     @stack('styles')
 </head>
@@ -1128,7 +1168,46 @@
                 subitems.classList.toggle('hidden');
             }
         }
+
+        
+        // Modal de confirmación global: cualquier <form data-confirm="mensaje"> lo usa en lugar del confirm() nativo
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (!form.dataset.confirm || form.dataset.confirmado === '1') return;
+
+            e.preventDefault();
+            const btnOk = document.getElementById('confirmModalOk');
+            document.getElementById('confirmModalMsg').textContent = form.dataset.confirm;
+            btnOk.textContent = form.dataset.confirmOk || 'Aceptar';
+            btnOk.classList.toggle('confirm-btn-peligro', form.hasAttribute('data-confirm-peligro'));
+            document.getElementById('confirmModal').classList.add('abierto');
+            btnOk.focus();
+
+            btnOk.onclick = function () {
+                cerrarConfirmModal();
+                form.dataset.confirmado = '1';
+                form.requestSubmit(e.submitter);
+            };
+        });
+
+        window.cerrarConfirmModal = function () {
+            document.getElementById('confirmModal').classList.remove('abierto');
+        };
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarConfirmModal(); });
+
     </script>
+     <!-- Modal de confirmación global (lo abre cualquier <form data-confirm="...">) -->
+    <div class="confirm-overlay" id="confirmModal" onclick="if (event.target === this) cerrarConfirmModal()">
+        <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitulo">
+            <h3 class="confirm-titulo" id="confirmModalTitulo">Confirmar acción</h3>
+            <p class="confirm-msg" id="confirmModalMsg"></p>
+            <div class="confirm-acciones">
+                <button type="button" class="confirm-btn confirm-btn-cancelar" onclick="cerrarConfirmModal()">Cancelar</button>
+                <button type="button" class="confirm-btn confirm-btn-ok" id="confirmModalOk">Aceptar</button>
+            </div>
+        </div>
+    </div>
     @stack('scripts')
 </body>
 </html>
