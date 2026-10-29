@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Puesto;
+use App\Models\HistorialCambio;
 use App\Models\LaboralEmpleado;
 use App\Models\Ubicacion;
 use Illuminate\Http\RedirectResponse;
@@ -70,6 +71,15 @@ class PuestoController extends Controller
 
         Puesto::create($data);
 
+        HistorialCambio::create([
+            'Usuario_ID' => auth()->id(),
+            'N_Empleado' => 0,
+            'Cambio' => "Registro de Nuevo Puesto con Nombre: {$data['Nombre_Puesto']}",
+            // Hora de México como el legacy (su date() usa date.timezone=America/Mexico_City); la app sigue en UTC
+            'Fecha_Hora' => now('America/Mexico_City'),
+        ]);
+
+
         return redirect()->route('puestos.index')
             ->with('status', 'Puesto de trabajo creado correctamente.');
     }
@@ -89,6 +99,13 @@ class PuestoController extends Controller
         $data['Descripcion'] = $data['Descripcion'] ?? '';
 
         $puesto->update($data);
+
+        HistorialCambio::create([
+            'Usuario_ID' => auth()->id(),
+            'N_Empleado' => 0,
+            'Cambio' => "Actualizacion de Puesto con Nombre: {$data['Nombre_Puesto']}",
+            'Fecha_Hora' => now('America/Mexico_City'),
+        ]);
 
         return redirect()->route('puestos.index')
             ->with('status', 'Puesto de trabajo actualizado correctamente.');
