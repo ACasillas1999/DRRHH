@@ -112,7 +112,7 @@ Route::middleware('auth')->group(function () {
 
         Route::resource('razones-sociales', RazonSocialController::class);
 
-        Route::resource('puestos', PuestoController::class);
+        Route::resource('puestos', PuestoController::class)->except(['create', 'edit', 'show']);
         Route::get('/organigrama', [PuestoController::class, 'organigrama'])->name('organigrama.index');
         Route::resource('responsables', ResponsableController::class);
         Route::resource('ubicaciones', UbicacionController::class);

@@ -34,7 +34,12 @@ class PuestoController extends Controller
             $puestosGrouped[$dep][$sub][] = $puesto;
         }
 
-        return view('puestos.index', compact('puestosGrouped', 'busqueda'));
+        // Listas para los <datalist> del modal (autocompletar con valores que ya existen)
+        $nombresPuestos = Puesto::distinct()->whereNotNull('Nombre_Puesto')->where('Nombre_Puesto', '!=', '')->orderBy('Nombre_Puesto')->pluck('Nombre_Puesto');
+        $departamentos = Puesto::distinct()->whereNotNull('Departamento')->where('Departamento', '!=', '')->orderBy('Departamento')->pluck('Departamento');
+        $subdepartamentos = Puesto::distinct()->whereNotNull('SubDepartamento')->where('SubDepartamento', '!=', '')->orderBy('SubDepartamento')->pluck('SubDepartamento');
+
+        return view('puestos.index', compact('puestosGrouped', 'busqueda', 'nombresPuestos', 'departamentos', 'subdepartamentos'));
     }
 
     public function organigrama(): View
@@ -49,15 +54,6 @@ class PuestoController extends Controller
             $hierarchy[$dep][$sub][] = $puesto;
         }
         return view('organigrama.index', compact('hierarchy'));
-    }
-
-    public function create(): View
-    {
-        $nombresPuestos = Puesto::distinct()->whereNotNull('Nombre_Puesto')->where('Nombre_Puesto', '!=', '')->orderBy('Nombre_Puesto')->pluck('Nombre_Puesto');
-        $departamentos = Puesto::distinct()->whereNotNull('Departamento')->where('Departamento', '!=', '')->orderBy('Departamento')->pluck('Departamento');
-        $subdepartamentos = Puesto::distinct()->whereNotNull('SubDepartamento')->where('SubDepartamento', '!=', '')->orderBy('SubDepartamento')->pluck('SubDepartamento');
-
-        return view('puestos.crear', compact('nombresPuestos', 'departamentos', 'subdepartamentos'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -76,16 +72,6 @@ class PuestoController extends Controller
 
         return redirect()->route('puestos.index')
             ->with('status', 'Puesto de trabajo creado correctamente.');
-    }
-
-    public function edit(string $id): View
-    {
-        $puesto = Puesto::findOrFail($id);
-        $nombresPuestos = Puesto::distinct()->whereNotNull('Nombre_Puesto')->where('Nombre_Puesto', '!=', '')->orderBy('Nombre_Puesto')->pluck('Nombre_Puesto');
-        $departamentos = Puesto::distinct()->whereNotNull('Departamento')->where('Departamento', '!=', '')->orderBy('Departamento')->pluck('Departamento');
-        $subdepartamentos = Puesto::distinct()->whereNotNull('SubDepartamento')->where('SubDepartamento', '!=', '')->orderBy('SubDepartamento')->pluck('SubDepartamento');
-
-        return view('puestos.editar', compact('puesto', 'nombresPuestos', 'departamentos', 'subdepartamentos'));
     }
 
     public function update(Request $request, string $id): RedirectResponse

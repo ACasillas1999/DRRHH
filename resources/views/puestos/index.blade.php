@@ -556,6 +556,27 @@
         .columna-lista { max-height: none; }
     }
 
+    /* Modal Registrar / Editar Puesto (usa .modal-overlay y .modal-box de arriba) */
+    .modal-overlay.abierto { display: flex; }
+    .modal-box { max-height: 90vh; overflow-y: auto; }
+    .form-puesto { display: flex; flex-direction: column; gap: 1rem; }
+    .form-puesto textarea {
+        width: 100%;
+        min-height: 100px;
+        resize: vertical;
+        padding: 0.5rem 0.65rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-page);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.85rem;
+    }
+    button.ver-link { background: none; border: none; padding: 0; font-family: inherit; }
+
+    .errores { background-color: rgba(220, 38, 38, 0.1); border: 1px solid var(--baja); color: var(--baja); border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.85rem; }
+    .errores ul { margin-left: 1.25rem; margin-top: 0.35rem; }
+
 </style>
 @endpush
 
@@ -568,7 +589,7 @@
     @endif
 
     <div class="top-row">
-        <a class="btn btn-primary" href="{{ route('puestos.create') }}">+ Registrar Puesto</a>
+        <button type="button" class="btn btn-primary" onclick="abrirModalPuesto()">+ Registrar Puesto</button>
     </div>
 
     <form class="filtros-card" method="GET" action="{{ route('puestos.index') }}">
@@ -634,7 +655,10 @@
                                     <span class="item-puesto-nombre">{{ $p->Nombre_Puesto }}</span>
                                     <span class="item-puesto-desc">{{ $p->Descripcion ?: 'Sin descripción' }}</span>
                                     <div class="acciones-cell">
-                                        <a class="ver-link" href="{{ route('puestos.edit', $p->ID) }}">Editar</a>
+                                        <button type="button" class="ver-link" onclick="abrirModalPuesto(this)"
+                                            data-url="{{ route('puestos.update', $p->ID) }}" data-id="{{ $p->ID }}"
+                                            data-nombre="{{ $p->Nombre_Puesto }}" data-departamento="{{ $p->Departamento }}"
+                                            data-subdepartamento="{{ $p->SubDepartamento }}" data-descripcion="{{ $p->Descripcion }}">Editar</button>
                                         <form method="POST" action="{{ route('puestos.destroy', $p->ID) }}" data-confirm="¿Estás seguro de que deseas eliminar este puesto de trabajo?" data-confirm-ok="Eliminar" data-confirm-peligro style="display:inline;">
                                             @csrf
                                             @method('DELETE')
@@ -649,6 +673,62 @@
             </div>
         </div>
     @endif
+
+    <!-- Modal Registrar / Editar Puesto (un solo formulario; el JS cambia acción y título) -->
+    <div class="modal-overlay" id="modalPuesto" onclick="if (event.target === this) cerrarModalPuesto()">
+        <div class="modal-box">
+            <h3 id="modalPuestoTitulo">Registrar Puesto</h3>
+
+            @if ($errors->any())
+                <div class="errores" id="erroresPuesto">
+                    Corrige los siguientes errores:
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form method="POST" id="formPuesto" action="{{ route('puestos.store') }}" data-url-crear="{{ route('puestos.store') }}" class="form-puesto">
+                @csrf
+                <input type="hidden" name="_method" value="PUT" disabled>
+                <input type="hidden" name="puesto_id" value="{{ old('puesto_id') }}">
+
+                <div class="campo">
+                    <label for="Nombre_Puesto">Nombre del Puesto *</label>
+                    <input type="text" id="Nombre_Puesto" name="Nombre_Puesto" value="{{ old('Nombre_Puesto') }}" required maxlength="250" placeholder="Ej: AUXILIAR DE RECURSOS HUMANOS" list="lista_nombres_puestos">
+                </div>
+                <div class="campo">
+                    <label for="Departamento">Departamento *</label>
+                    <input type="text" id="Departamento" name="Departamento" value="{{ old('Departamento') }}" required maxlength="255" placeholder="Ej: RECURSOS HUMANOS" list="lista_departamentos">
+                </div>
+                <div class="campo">
+                    <label for="SubDepartamento">SubDepartamento</label>
+                    <input type="text" id="SubDepartamento" name="SubDepartamento" value="{{ old('SubDepartamento') }}" maxlength="255" placeholder="Ej: NOMINAS" list="lista_subdepartamentos">
+                </div>
+                <div class="campo">
+                    <label for="Descripcion">Descripción / Perfil del Puesto</label>
+                    <textarea id="Descripcion" name="Descripcion" maxlength="2000" placeholder="Describe las funciones del puesto...">{{ old('Descripcion') }}</textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secundario" onclick="cerrarModalPuesto()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarPuesto">Registrar Puesto</button>
+                </div>
+            </form>
+
+            <datalist id="lista_nombres_puestos">
+                @foreach($nombresPuestos as $np)<option value="{{ $np }}">@endforeach
+            </datalist>
+            <datalist id="lista_departamentos">
+                @foreach($departamentos as $dep)<option value="{{ $dep }}">@endforeach
+            </datalist>
+            <datalist id="lista_subdepartamentos">
+                @foreach($subdepartamentos as $sd)<option value="{{ $sd }}">@endforeach
+            </datalist>
+        </div>
+    </div>
 
 @endsection
 
@@ -682,6 +762,43 @@
         const primero = document.querySelector('.col-dep .item-col');
         if (primero) seleccionarDepartamento(primero.dataset.dep);
     });
+
+    // Registrar (sin botón) o Editar (botón con data-*): el mismo formulario cambia de acción y título
+    function abrirModalPuesto(boton = null) {
+        const d = boton ? boton.dataset : {};
+        const campos = document.getElementById('formPuesto').elements;
+        campos['Nombre_Puesto'].value = d.nombre || '';
+        campos['Departamento'].value = d.departamento || '';
+        campos['SubDepartamento'].value = d.subdepartamento || '';
+        campos['Descripcion'].value = d.descripcion || '';
+        document.getElementById('erroresPuesto')?.remove();
+        prepararModalPuesto(d.url || null, d.id || '');
+    }
+
+    function prepararModalPuesto(urlEditar, id) {
+        const form = document.getElementById('formPuesto');
+        const esEditar = !!urlEditar;
+        form.action = esEditar ? urlEditar : form.dataset.urlCrear;
+        form.elements['_method'].disabled = !esEditar;
+        form.elements['puesto_id'].value = id || '';
+        document.getElementById('modalPuestoTitulo').textContent = esEditar ? 'Editar Puesto' : 'Registrar Puesto';
+        document.getElementById('btnGuardarPuesto').textContent = esEditar ? 'Guardar Cambios' : 'Registrar Puesto';
+        document.getElementById('modalPuesto').classList.add('abierto');
+        form.elements['Nombre_Puesto'].focus();
+    }
+
+    function cerrarModalPuesto() {
+        document.getElementById('modalPuesto').classList.remove('abierto');
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModalPuesto(); });
+
+    @if ($errors->any())
+        // La validación falló: reabre el modal; los campos ya vienen llenos con old()
+        document.addEventListener('DOMContentLoaded', () => {
+            prepararModalPuesto(@json(old('puesto_id') ? route('puestos.update', old('puesto_id')) : null), @json(old('puesto_id')));
+        });
+    @endif
 
 </script>
 @endpush
