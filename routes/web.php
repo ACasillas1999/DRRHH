@@ -27,6 +27,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ChecadorWebhookController;
 
 use App\Models\LaboralEmpleado;
+use App\Models\FechaLaboral;
 
 Route::get('/login', [LoginController::class, 'showForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware(['guest', 'throttle:5,1']);
@@ -37,7 +38,9 @@ Route::post('/webhooks/checador', [ChecadorWebhookController::class, 'receive'])
 
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
-        $totalEmpleados = Personal::count();
+        // Cada alta (y reingreso) crea una fila en fechas_laborales; se cuentan todas las del año, sigan activos o no
+        $anio = now('America/Mexico_City')->year;
+        $contratacionesAnio = FechaLaboral::whereYear('Fecha_Ingreso', $anio)->count();
         $activos = LaboralEmpleado::where('Estatus', 'ACTIVO')->count();
         $bajas = LaboralEmpleado::where('Estatus', 'BAJA')->count();
 
@@ -49,7 +52,7 @@ Route::middleware('auth')->group(function () {
             ->whereHas('laboral', fn ($q) => $q->where('Estatus', 'ACTIVO'))
             ->count();
 
-        return view('menu', compact('totalEmpleados', 'activos', 'bajas', 'hombres', 'mujeres'));
+        return view('menu', compact('anio', 'contratacionesAnio', 'activos', 'bajas', 'hombres', 'mujeres'));
     });
 
     Route::get('/test-db', function () {

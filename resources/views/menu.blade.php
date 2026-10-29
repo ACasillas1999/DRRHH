@@ -249,17 +249,15 @@
     <!-- Indicadores Estadísticos en Tiempo Real -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon icon-blue">
+            <div class="stat-icon icon-green">
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
             </div>
             <div class="stat-info">
-                <span class="stat-label">Total Empleados</span>
-                <span class="stat-val">{{ $totalEmpleados }}</span>
+                <span class="stat-label">Activos</span>
+                <span class="stat-val">{{ $activos }}</span>
             </div>
         </div>
 
@@ -296,15 +294,17 @@
         </div>
 
         <div class="stat-card">
-            <div class="stat-icon icon-green">
+            <div class="stat-icon icon-blue">
                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="17" y1="11" x2="23" y2="11"></line>
                 </svg>
             </div>
             <div class="stat-info">
-                <span class="stat-label">Activos</span>
-                <span class="stat-val">{{ $activos }}</span>
+                <span class="stat-label">Contrataciones {{ $anio }}</span>
+                <span class="stat-val">{{ $contratacionesAnio }}</span>
             </div>
         </div>
 
