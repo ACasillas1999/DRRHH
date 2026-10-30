@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 
 class PuestoController extends Controller
 {
@@ -68,6 +69,7 @@ class PuestoController extends Controller
 
         $data['SubDepartamento'] = $data['SubDepartamento'] ?? '';
         $data['Descripcion'] = $data['Descripcion'] ?? '';
+        $data = $this->normalizarYValidarDuplicado($data);
 
         Puesto::create($data);
 
@@ -97,6 +99,7 @@ class PuestoController extends Controller
 
         $data['SubDepartamento'] = $data['SubDepartamento'] ?? '';
         $data['Descripcion'] = $data['Descripcion'] ?? '';
+        $data = $this->normalizarYValidarDuplicado($data, $puesto->ID);
 
         $puesto->update($data);
 
@@ -109,6 +112,29 @@ class PuestoController extends Controller
 
         return redirect()->route('puestos.index')
             ->with('status', 'Puesto de trabajo actualizado correctamente.');
+    }
+
+    // Un puesto no se puede repetir: mismo nombre en el mismo departamento y subdepartamento.
+    // Mayúsculas/minúsculas cuentan igual por la collation _ci de MySQL; los espacios dobles se juntan antes de comparar y guardar
+    private function normalizarYValidarDuplicado(array $data, ?int $ignorarId = null): array
+    {
+        foreach (['Nombre_Puesto', 'Departamento', 'SubDepartamento'] as $campo) {
+            $data[$campo] = preg_replace('/\s+/', ' ', trim($data[$campo]));
+        }
+
+        $existe = Puesto::where('Nombre_Puesto', $data['Nombre_Puesto'])
+            ->where('Departamento', $data['Departamento'])
+            ->where('SubDepartamento', $data['SubDepartamento'])
+            ->when($ignorarId, fn ($q) => $q->where('ID', '!=', $ignorarId))
+            ->exists();
+
+        if ($existe) {
+            throw ValidationException::withMessages([
+                'Nombre_Puesto' => 'Ya existe el puesto "' . $data['Nombre_Puesto'] . '" en ' . $data['Departamento'] . ' / ' . ($data['SubDepartamento'] ?: 'sin subdepartamento') . '.',
+            ]);
+        }
+
+        return $data;
     }
 
     public function destroy(string $id): RedirectResponse
