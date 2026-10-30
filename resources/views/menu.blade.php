@@ -343,9 +343,12 @@
                 </svg>
                 Atracción de Talento
             </div>
-            <p class="action-card-desc">Da seguimiento a los candidatos y a sus procesos de reclutamiento.</p>
+            <p class="action-card-desc">Puestos a cubrir, candidatos en proceso, personal y reportes de la plantilla.</p>
             <div class="action-links">
+                <a href="{{ route('puestos.index') }}">Puestos <span>&rsaquo;</span></a>
                 <a href="{{ route('reclutamiento.index') }}">Reclutamiento <span>&rsaquo;</span></a>
+                <a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>
+                <a href="{{ route('reportes.index') }}">Reportes <span>&rsaquo;</span></a>
             </div>
         </div>
         @endif
