@@ -558,6 +558,9 @@
         line-height: 1.45;
         color: var(--text-main);
     }
+    .item-puesto-funciones.colapsada li:nth-child(n+4) { display: none; }
+    .btn-ver-mas { align-self: flex-start; font-size: 0.8rem; }
+
 
     .col-vacia { padding: 1.5rem 0.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
 
@@ -664,18 +667,27 @@
                             @foreach($puestosList as $p)
                                 <div class="item-puesto hidden" data-sub="{{ $s }}">
                                     <span class="item-puesto-nombre">{{ $p->Nombre_Puesto }}</span>
-                                    @if (trim($p->Descripcion ?? '') === '')
+                                    @php
+                                        // Cada renglón no vacío de la descripción es una función (igual que el legacy)
+                                        $funciones = array_values(array_filter(
+                                            array_map('trim', preg_split('/\r\n|\r|\n/', $p->Descripcion ?? '')),
+                                            fn ($f) => $f !== ''
+                                        ));
+                                        $extra = count($funciones) - 3;
+                                    @endphp
+                                    @if (count($funciones) === 0)
                                         <span class="item-puesto-desc">Sin descripción</span>
                                     @else
-                                        {{-- Igual que el legacy: cada renglón de la descripción es una función --}}
                                         <span class="item-puesto-funciones-titulo">Funciones:</span>
-                                        <ul class="item-puesto-funciones">
-                                            @foreach (preg_split('/\r\n|\r|\n/', trim($p->Descripcion)) as $funcion)
-                                                @if (trim($funcion) !== '')
-                                                    <li>{{ trim($funcion) }}</li>
-                                                @endif
+                                        <ul class="item-puesto-funciones {{ $extra > 0 ? 'colapsada' : '' }}">
+                                            @foreach ($funciones as $funcion)
+                                                <li>{{ $funcion }}</li>
                                             @endforeach
                                         </ul>
+                                        @if ($extra > 0)
+                                            <button type="button" class="ver-link btn-ver-mas" onclick="toggleFunciones(this)"
+                                                data-texto-mas="Ver más (+{{ $extra }})">Ver más (+{{ $extra }})</button>
+                                        @endif
                                     @endif
 
                                     <div class="acciones-cell">
@@ -786,6 +798,14 @@
         const primero = document.querySelector('.col-dep .item-col');
         if (primero) seleccionarDepartamento(primero.dataset.dep);
     });
+    
+    // Ver más / Ver menos: quita o pone la clase que oculta las funciones de la 4 en adelante
+    function toggleFunciones(boton) {
+        const lista = boton.previousElementSibling;
+        const colapsada = lista.classList.toggle('colapsada');
+        boton.textContent = colapsada ? boton.dataset.textoMas : 'Ver menos';
+    }
+
 
     // Registrar (sin botón) o Editar (botón con data-*): el mismo formulario cambia de acción y título
     function abrirModalPuesto(boton = null) {
