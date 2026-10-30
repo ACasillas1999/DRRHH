@@ -55,7 +55,7 @@
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
 
     .btn {
@@ -80,9 +80,9 @@
         background-color: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 16px;
-        padding: 1.25rem;
+        padding: 1rem 1.25rem;
         box-shadow: var(--shadow-sm);
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
 
     .filtros-grid {
@@ -561,8 +561,17 @@
     .item-puesto-funciones.colapsada li:nth-child(n+4) { display: none; }
     .btn-ver-mas { align-self: flex-start; font-size: 0.8rem; }
 
-
     .col-vacia { padding: 1.5rem 0.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+
+    /* Escritorio: la página mide exactamente la pantalla y las columnas llenan lo que sobra;
+       solo cada lista hace scroll por dentro. Cadena: .wrapper (100vh) > main > .columnas-puestos > .columna > .columna-lista */
+    @media (min-width: 901px) {
+        .wrapper { height: 100vh; }
+        main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+        .columnas-puestos { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+        .columna { display: flex; flex-direction: column; min-height: 0; }
+        .columna-lista { flex: 1; min-height: 0; max-height: none; }
+    }
 
     /* Tablet y celular: columnas una debajo de otra */
     @media (max-width: 900px) {
@@ -798,7 +807,7 @@
         const primero = document.querySelector('.col-dep .item-col');
         if (primero) seleccionarDepartamento(primero.dataset.dep);
     });
-    
+
     // Ver más / Ver menos: quita o pone la clase que oculta las funciones de la 4 en adelante
     function toggleFunciones(boton) {
         const lista = boton.previousElementSibling;

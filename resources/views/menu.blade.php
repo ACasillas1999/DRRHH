@@ -9,9 +9,9 @@
     .hero-banner {
         background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
         border-radius: 20px;
-        padding: 2.5rem;
+        padding: 1.75rem 2rem;
         color: white;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
         position: relative;
         overflow: hidden;
         box-shadow: var(--shadow-md);
@@ -36,17 +36,17 @@
     }
 
     .hero-title {
-        font-size: 2.5rem;
+        font-size: 2rem;
         font-weight: 700;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
         letter-spacing: -0.02em;
     }
 
     .hero-desc {
-        font-size: 1.25rem;
+        font-size: 1rem;
         opacity: 0.9;
         line-height: 1.5;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.1rem;
     }
 
     .hero-btn {
@@ -55,7 +55,7 @@
         gap: 0.5rem;
         background-color: white;
         color: var(--primary);
-        padding: 0.75rem 1.5rem;
+        padding: 0.6rem 1.25rem;
         border-radius: 12px;
         font-weight: 600;
         text-decoration: none;
@@ -70,26 +70,26 @@
     /* Grid de Estadísticas */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 1.75rem;
     }
 
     .stat-card {
         background-color: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 20px;
-        padding: 1.5rem;
+        padding: 1.15rem 1.25rem;
         display: flex;
         align-items: center;
-        gap: 1.25rem;
+        gap: 1rem;
         box-shadow: var(--shadow-md);
         position: relative;
     }
 
     .stat-icon {
-        width: 54px;
-        height: 54px;
+        width: 46px;
+        height: 46px;
         border-radius: 14px;
         display: flex;
         align-items: center;
@@ -103,7 +103,7 @@
     }
 
     .stat-label {
-        font-size: 1.0rem;
+        font-size: 0.85rem;
         color: var(--text-muted);
         font-weight: 500;
         text-transform: uppercase;
@@ -111,7 +111,7 @@
     }
 
     .stat-val {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
         font-weight: 700;
         color: var(--text-main);
         margin-top: 0.15rem;
@@ -148,9 +148,9 @@
 
     /* Accesos Rápidos */
     .section-title {
-        font-size: 1.50rem;
+        font-size: 1.25rem;
         font-weight: 600;
-        margin-bottom: 1.25rem;
+        margin-bottom: 0.9rem;
         letter-spacing: -0.01em;
     }
 
@@ -164,25 +164,25 @@
     .actions-grid {
         flex-grow: 1;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.25rem;
     }
 
     .action-card {
         background-color: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 20px;
-        padding: 1.5rem;
+        padding: 1.25rem;
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.75rem;
         text-decoration: none;
         color: inherit;
         box-shadow: var(--shadow-sm);
     }
 
     .action-card-title {
-        font-size: 2.4rem;
+        font-size: 1.85rem;
         font-weight: 600;
         display: flex;
         align-items: center;
@@ -191,13 +191,13 @@
 
     .action-card-title svg {
         color: var(--primary);
-        width: 30px;
-        height: 30px;
+        width: 26px;
+        height: 26px;
     }
 
     .action-card-desc {
         color: var(--text-muted);
-        font-size: 1.05rem;
+        font-size: 0.95rem;
         line-height: 1.4;
     }
 
@@ -212,11 +212,11 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0.6rem 0.75rem;
+        padding: 0.45rem 0.75rem;
         border-radius: 10px;
         color: var(--text-main);
         text-decoration: none;
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         font-weight: 500;
         transition: background-color 0.15s ease, color 0.15s ease;
     }
