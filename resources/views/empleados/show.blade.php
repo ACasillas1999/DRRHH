@@ -209,7 +209,8 @@
     /* Layout en Columnas Izquierda/Derecha */
     .show-grid {
         display: grid;
-        grid-template-columns: 1.15fr 0.85fr;
+        /* minmax(0, ...) deja que las columnas se encojan; si no, las tablas con nowrap estiran la columna derecha */
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
         gap: 1.5rem;
         align-items: start;
     }
@@ -748,6 +749,14 @@
     .preview-form-col input:focus, .preview-form-col select:focus, .preview-form-col textarea:focus {
         border-color: var(--primary) !important;
     }
+
+    /* Columna derecha (calendario, fechas, IMSS, asignaciones, pagos, cartas): más compacta para que quepa al 100% de zoom */
+    .right-column .detail-card { padding: 1.1rem; margin-bottom: 1.1rem; }
+    .right-column .detail-card h2 { font-size: 0.95rem; margin-bottom: 0.75rem; }
+    .right-column .premium-table thead th { padding: 0.5rem 0.55rem; font-size: 0.65rem; white-space: normal; }
+    .right-column .premium-table tbody td { padding: 0.45rem 0.55rem; font-size: 0.78rem; }
+    .right-column .action-btn { padding: 0.3rem 0.55rem; font-size: 0.7rem; }
+    .right-column .btn-pago-doc { padding: 0.4rem 0.75rem; font-size: 0.75rem; }
 </style>
 @endpush
 
