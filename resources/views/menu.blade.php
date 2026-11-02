@@ -225,6 +225,28 @@
         background-color: var(--primary-light);
         color: var(--primary);
     }
+    
+    /* Tarjeta con muchos links: 2 columnas para que el dashboard no haga scroll */
+    .action-links-2col {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 0.5rem;
+    }
+
+    /* Módulo aún no migrado: se ve en gris y no es clic */
+    .link-pronto {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.45rem 0.75rem;
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .link-pronto small { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
 </style>
 @endpush
 
@@ -362,15 +384,26 @@
                 </svg>
                 Administración de Personal
             </div>
-            <p class="action-card-desc">Expedientes, altas de colaboradores, asistencia y eventos del día.</p>
-            <div class="action-links">
-                <a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>
-                <a href="{{ route('empleados.crear') }}">Registrar empleado <span>&rsaquo;</span></a>
+            <p class="action-card-desc">Expedientes, IMSS, estructura, ausencias e incidencias del personal.</p>
+            <div class="action-links action-links-2col">
+                <a href="{{ route('altas-imss.index') }}">Altas/Bajas IMSS <span>&rsaquo;</span></a>
                 @if($esRH)
+                <a href="{{ route('razones-sociales.index') }}">Razones Sociales <span>&rsaquo;</span></a>
+                <a href="{{ route('puestos.index') }}">Puestos <span>&rsaquo;</span></a>
+                <a href="{{ route('reclutamiento.index') }}">Reclutamiento <span>&rsaquo;</span></a>
+                @endif
+                <a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>
+                @if($esRH)
+                <a href="{{ route('reportes.index') }}">Reportes <span>&rsaquo;</span></a>
+                @endif
+                {{-- Vacaciones e Incapacidades aún no se migran (en el menú lateral salen como "Próx") --}}
+                <span class="link-pronto">Vacaciones <small>Próx</small></span>
+                @if($esRH)
+                <span class="link-pronto">Incapacidades <small>Próx</small></span>
                 <a href="{{ route('incidencias.index') }}">Incidencias <span>&rsaquo;</span></a>
-                <a href="{{ route('diario.index') }}">Diario <span>&rsaquo;</span></a>
                 @endif
             </div>
+
         </div>
         @endif
 
