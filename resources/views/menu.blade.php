@@ -418,9 +418,14 @@
             </div>
             <p class="action-card-desc">Estructura de puestos y reportes de la plantilla.</p>
             <div class="action-links">
-                <a href="{{ route('organigrama.index') }}">Organigrama <span>&rsaquo;</span></a>
+                <a href="{{ route('puestos.index') }}">Puestos <span>&rsaquo;</span></a>
+                <a href="{{ route('reclutamiento.index') }}">Reclutamiento <span>&rsaquo;</span></a>
                 <a href="{{ route('reportes.index') }}">Reportes <span>&rsaquo;</span></a>
+                <a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>
+                {{-- Inventario aún no se migra: su ruta solo muestra la página de mantenimiento --}}
+                <span class="link-pronto">Inventario <small>Próx</small></span>
             </div>
+
         </div>
         @endif
     </div>
