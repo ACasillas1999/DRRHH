@@ -3,6 +3,12 @@
 Shared handoff notes for any AI tool editing this project. See `.claude/skills/ai-context/SKILL.md`
 for the read/write rules. Capped at 10 entries, most recent first.
 
+## 2026-11-02 — Claude Code (Opus 5.5)
+Roles con permisos editables (port del módulo de Unidata): tabla `roles` (permisos JSON), catálogo en `config/permissions.php`, `Gate::before` → `can:modules.x` / `@can`, pantalla `/roles`. FASE 1 hecha (aditiva, aún protegida por `role:Admin`); el acceso real sigue en los grupos `role:` de web.php.
+Decisión: NO se tocó `usuarios` (BD `gpoascen_rh` compartida con legacy RH/, que lee `usuarios.Rol` como texto) → rol ligado por `usuarios.Rol = roles.name`; los 6 roles seed son `is_system` (no renombrar/borrar). Admin no puede perder `modules.roles` (anti-bloqueo).
+PENDIENTE: usuario debe correr en el .117 `php artisan migrate --path=database/migrations/2026_11_02_000000_create_roles_table.php` (solo esa, no `migrate` a secas: puede que la tabla migrations no registre las demás) + `php artisan db:seed --class=RolesSeeder`. Luego FASE 2: cambiar grupos `role:` → `can:modules.*`, menú `data-roles` → permisos, `UsuarioController::ROLES` → `Role::pluck('name')`. Antes de fase 2 la tabla DEBE existir o todos reciben 403/500.
+Gotcha previo: menú de Incidencias/Vacaciones se muestra a Jefe/Gerente/Encargado/Nominas pero la ruta solo deja Admin,RH → 403. El seeder respeta el acceso real de la ruta (no el menú). (De entrada 07-16 borrada: `usuarios.Responsable` guarda `Responsables.ID`, no `N_Empleado`.)
+
 ## 2026-10-27 — Claude Code (Opus 5.5)
 Empleados (show/alta/documentos) llevado a paridad con legacy `RH/Detalles_Empleado.php` completo (expediente, baja, machotes, ficha, folio solo en BAJA, fechas laborales en calendario, botón Inventario → `/inventario` página "en mantenimiento"). Regla del usuario: igualar legacy, desviarse solo por seguridad/corrupción de datos y decirlo.
 Gotchas: legacy guarda en hora México (usar `now('America/Mexico_City')`, app en UTC); legacy no-estricto guarda '' en NOT NULL (DRRHH strict truena con null); desde la PC del dev `DB_HOST=localhost` NO es el .117 → no hay acceso SQL directo; .142 = producción, nunca probar ahí.
@@ -61,10 +67,3 @@ Role→module mapping mirrors the sidebar's pre-existing `data-roles` attributes
 Sidebar (`layouts/app.blade.php`): removed the "Simular Rol" `<select>` + its JS entirely; `filterMenuByRole()` now called once on load with the real `auth()->user()->Rol`; profile widget (avatar/name/role label) wired to the real user; logout is now a real `POST /logout` form (was `href="#logout"` placeholder).
 Verified end-to-end via a throwaway `Usuario` (created/role-switched/deleted through temporary debug routes, cleaned up after): login, protected-route redirect-to-login when logged out, role-gated 403 (RH hitting `/usuarios`), role change reflected without re-login (session only stores user ID, re-fetches model per request), logout invalidating the session.
 Deferred (matches legacy, user confirmed): no remember-me, no password reset, no self-registration — accounts are created by an Admin via `/usuarios`.
-
-## 2026-07-16 — Claude Code (Sonnet 5)
-Ported legacy RH "Usuarios" module (`usuarios.php` + Agregar/Actualizar_Usuario.php) to `/usuarios`: list + modal crear/editar, cascading Departamento→Responsable select (fetch API `/api/usuarios/responsables`, mirrors legacy `get_responsables.php`). No delete — legacy never had one either.
-Gotcha: `usuarios.Responsable` column stores `Responsables.ID` (the assignment-row ID), NOT the employee's `N_Empleado` — confirmed from legacy's own dropdown `value="${responsable.ID}"`. Easy to get backwards since the column name suggests otherwise.
-`Usuario` model already existed from an earlier session (columns: ID, Username, Password, Rol, Departamento, Responsable, Nombre, Correo, Telefono; `$hidden=['Password']`). Passwords hashed via `bcrypt()` on create; update form doesn't touch password (matches legacy).
-Auth/login still not wired up in this app (per earlier deferral) — this is just CRUD on the `usuarios` table, no session/login system yet.
-Also fixed a table-overflow bug in `reportes/index.blade.php`: `.chart-body{display:flex}` wrapping a canvas + comparison table with no `min-width:0` — classic flexbox trap, forces the table to blow out its container. Fixed with `min-width:0` on flex children + `overflow-x:auto` wrapper on the tables.

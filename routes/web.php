@@ -23,6 +23,7 @@ use App\Http\Controllers\ChecadorController;
 use App\Http\Controllers\HistorialController;
 use App\Http\Controllers\ReclutamientoController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\RolController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ChecadorWebhookController;
 
@@ -163,6 +164,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:Admin')->group(function () {
         Route::resource('usuarios', UsuarioController::class)->only(['index', 'store', 'update']);
         Route::get('/api/usuarios/responsables', [UsuarioController::class, 'apiResponsables'])->name('api.usuarios.responsables');
+
+        // Roles y permisos (fase 1: protegido por role:Admin hasta migrar las rutas a can:modules.*)
+        Route::resource('roles', RolController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::put('/roles/{role}/permisos', [RolController::class, 'permisos'])->name('roles.permisos');
+        Route::post('/roles/{role}/duplicar', [RolController::class, 'duplicate'])->name('roles.duplicate');
     });
 });
 
