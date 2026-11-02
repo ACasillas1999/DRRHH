@@ -30,6 +30,8 @@
             --activo: #16a34a;
             --baja: #dc2626;
             --pendiente: #d97706;
+            color-scheme: light;
+
         }
 
         [data-theme="dark"] {
@@ -49,6 +51,7 @@
             --activo: #4ade80;
             --baja: #f87171;
             --pendiente: #fbbf24;
+            color-scheme: dark;
         }
 
         * {
