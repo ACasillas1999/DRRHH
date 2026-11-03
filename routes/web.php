@@ -63,7 +63,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/notificaciones', [EmpleadoController::class, 'notificaciones'])->name('notificaciones');
 
-        Route::middleware('can:modules.empleados')->group(function () {
+    Route::middleware('can:modules.empleados')->group(function () {
         Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
         Route::get('/empleados/crear', [EmpleadoCrearController::class, 'create'])->name('empleados.crear');
         Route::post('/empleados', [EmpleadoCrearController::class, 'store'])->name('empleados.store');

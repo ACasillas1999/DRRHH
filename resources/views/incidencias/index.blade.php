@@ -396,9 +396,13 @@
                                 </td>
                                 <td>{{ \Carbon\Carbon::parse($inc->Fecha_Creacion)->format('d/m/Y H:i') }}</td>
                                 <td>
-                                    <button type="button" class="btn-action-delete" onclick="openDeleteModal({{ $inc->id }})">
-                                        Eliminar
-                                    </button>
+                                    @can('actions.incidencias_editar')
+                                        <button type="button" class="btn-action-delete" onclick="openDeleteModal({{ $inc->id }})">
+                                            Eliminar
+                                        </button>
+                                    @else
+                                        —
+                                    @endcan
                                 </td>
                             </tr>
                         @empty
@@ -494,11 +498,11 @@
         <div class="modal-footer">
             <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; gap: 1rem;">
                 <div>
-                    @if(in_array(auth()->user()->Rol ?? '', ['Admin', 'RH']))
+                    @can('actions.incidencias_editar')
                     <button type="button" class="btn-primary-action" onclick="openMatrixEditFromDetail()" style="padding: 0.5rem 1rem; font-size: 0.85rem; height: auto;">
                         Justificar / Editar
                     </button>
-                    @endif
+                    @endcan
                 </div>
                 <button type="button" class="btn-secondary" onclick="closeMatrixDetailModal()">Cerrar</button>
             </div>
@@ -506,7 +510,7 @@
     </div>
 </div>
 
-@if(in_array(auth()->user()->Rol ?? '', ['Admin', 'RH']))
+@can('actions.incidencias_editar')
 <!-- MODAL PARA EDITAR/JUSTIFICAR ASISTENCIA DESDE LA MATRIZ -->
 <div id="matrixEditModal" class="modal-overlay hidden">
     <div class="modal-content card animate-fade-in" style="max-width: 480px;">
@@ -547,7 +551,7 @@
         </div>
     </div>
 </div>
-@endif
+@endcan
 @endsection
 
 @push('styles')
@@ -1353,6 +1357,8 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Lo calcula el servidor: si el rol no tiene "Editar incidencias" no se dibujan los botones de guardar/justificar
+    const PUEDE_EDITAR_INCIDENCIAS = @json(auth()->user()->can('actions.incidencias_editar'));
     // Conmutar pestañas (Tabs)
     function switchTab(tabId, buttonEl) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -1715,7 +1721,7 @@
             let actionHtml = '—';
             
             // Si tiene sugerencia de incidencia y no está guardada previamente
-            if (row.sugiere_incidencia && !row.id_incidencia_guardada) {
+            if (row.sugiere_incidencia && !row.id_incidencia_guardada && PUEDE_EDITAR_INCIDENCIAS) {
                 const btnClass = row.sugiere_incidencia === 'Retardo' ? 'btn-action-retardo' : 'btn-action-falta';
                 actionHtml = `
                     <div style="display: flex; gap: 0.4rem;" id="action-cell-${row.n_empleado}">

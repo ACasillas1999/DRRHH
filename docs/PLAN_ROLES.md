@@ -73,6 +73,9 @@ Si la tabla `roles` no existe, estos cambios dejan a todos los usuarios con 403/
       Nueva acción `actions.incidencias_editar` (guardar + desactivar incidencia); ver y auto-guardar-lote quedan en `modules.incidencias`.
       Decisión del usuario (2026-11-03): por ahora Nominas/Jefe/Gerente/Encargado SÍ entran a Incidencias (solo ver); se activó desde /roles.
       Probado: Admin 200 en 23 páginas; Jefe y Nominas 403 donde no tienen permiso, POST guardar/desactivar/subir incapacidad → 403.
+- [x] Vistas: `in_array(...->Rol, [...])` → `@can` / `->can()` (`Usuario` ahora usa el trait `Authorizable`). empleados/show: subir incapacidad
+      (`actions.incapacidades_subir`), botón Inventario (`modules.inventario`). incidencias: Justificar/Editar + su modal, botón Eliminar
+      y botones Guardar/Justificar de Conciliación (antes los veía todo el que entraba) → `actions.incidencias_editar`. Probado 2026-11-03.
 - [ ] `layouts/app.blade.php`: cambiar `data-roles="..."` por `data-perm="modules.<clave>"` y que
       `filterMenuByRole()` filtre con `auth()->user()->roleModel?->permisosActivos()`.
       Los enlaces "Próx" (Vacaciones, Incapacidades) siguen sin módulo: decidir con el usuario.
