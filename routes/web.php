@@ -63,7 +63,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/notificaciones', [EmpleadoController::class, 'notificaciones'])->name('notificaciones');
 
-    Route::middleware('role:Admin,RH,Nominas')->group(function () {
+        Route::middleware('can:modules.empleados')->group(function () {
         Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
         Route::get('/empleados/crear', [EmpleadoCrearController::class, 'create'])->name('empleados.crear');
         Route::post('/empleados', [EmpleadoCrearController::class, 'store'])->name('empleados.store');
@@ -97,50 +97,71 @@ Route::middleware('auth')->group(function () {
         Route::delete('/empleados/{n_empleado}/documentos-laborales/{id}', [EmpleadoDocumentoController::class, 'borrarLaboral'])->name('empleados.documentos.borrarLaboral');
         // Subir documento de baja (port de Doc_BAJA/Subir_Documento.php)
         Route::post('/empleados/{n_empleado}/documentos-baja', [EmpleadoDocumentoController::class, 'subirBaja'])->name('empleados.documentos.subirBaja');
+    });
+
+    Route::middleware('can:modules.altas_imss')->group(function () {
         Route::get('/altas-imss', [AltaBajaImssController::class, 'index'])->name('altas-imss.index');
         Route::post('/altas-imss/{n_empleado}/fecha-alta', [AltaBajaImssController::class, 'actualizarFechaAlta'])->name('altas-imss.fechaAlta');
         Route::post('/altas-imss/{n_empleado}/fecha-baja', [AltaBajaImssController::class, 'actualizarFechaBaja'])->name('altas-imss.fechaBaja');
         Route::post('/altas-imss/{n_empleado}/documento', [AltaBajaImssController::class, 'subirDocumento'])->name('altas-imss.documento');
     });
 
-    Route::middleware('role:Admin,RH')->group(function () {
+    Route::middleware('can:modules.inventario')->group(function () {
         // Inventario: en el legacy es RH/Inventario.php (solo Admin y RH). Aún no se migra, se muestra la página de mantenimiento
         Route::view('/inventario', 'mantenimiento', ['seccion' => 'Inventario'])->name('inventario');
+    });
 
+    Route::middleware('can:actions.incapacidades_subir')->group(function () {
         // Subir el documento de una incapacidad por su ID. Port de procesar_incapacidad.php
         // Va en este grupo porque en el legacy solo Admin y RH ven el botón de subir (Nominas no)
         Route::post('/empleados/{n_empleado}/incapacidades/subir', [EmpleadoDocumentoController::class, 'subirIncapacidad'])->name('empleados.incapacidades.subir');
+    });
 
+    Route::middleware('can:modules.razones_sociales')->group(function () {
         Route::resource('razones-sociales', RazonSocialController::class);
+    });
 
+    Route::middleware('can:modules.puestos')->group(function () {
         Route::resource('puestos', PuestoController::class)->except(['create', 'edit', 'show']);
         Route::get('/organigrama', [PuestoController::class, 'organigrama'])->name('organigrama.index');
         Route::resource('responsables', ResponsableController::class);
         Route::resource('ubicaciones', UbicacionController::class);
         Route::get('/api/puestos/subdepartamentos', [PuestoController::class, 'apiSubdepartamentos'])->name('api.puestos.subdepartamentos');
         Route::get('/api/puestos/empleados', [PuestoController::class, 'apiEmpleados'])->name('api.puestos.empleados');
+    });
 
+    Route::middleware('can:modules.reportes')->group(function () {
         Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
         Route::get('/reportes/ingresos-renuncias', [ReporteController::class, 'ingresosRenuncias'])->name('reportes.ingresosRenuncias');
         Route::match(['get', 'post'], '/reportes/exportar', [ReporteController::class, 'exportar'])->name('reportes.exportar');
         Route::post('/reportes/exportar/excel', [ReporteController::class, 'exportarExcel'])->name('reportes.exportarExcel');
         Route::resource('estimados', EstimadoController::class)->only(['index', 'store', 'update', 'destroy']);
+    });
 
+    Route::middleware('can:modules.diario')->group(function () {
         Route::get('/diario', [DiarioController::class, 'index'])->name('diario.index');
         Route::get('/diario/eventos-feed', [DiarioController::class, 'getEventosFeed'])->name('diario.eventos-feed');
         Route::get('/diario/dia-info', [DiarioController::class, 'getDiaInfo'])->name('diario.dia-info');
         Route::post('/diario/evaluacion/{id}/realizar', [DiarioController::class, 'realizarEvaluacion'])->name('diario.evaluacion.realizar');
+    });
 
+    Route::middleware('can:modules.incidencias')->group(function () {
         // Incidencias
         Route::get('/incidencias', [IncidenciaController::class, 'index'])->name('incidencias.index');
         Route::get('/incidencias/reportes', [IncidenciaController::class, 'reportesVista'])->name('incidencias.reportes');
         Route::get('/incidencias/biometrico', [IncidenciaController::class, 'consultarBiometrico'])->name('incidencias.biometrico');
-        Route::post('/incidencias/guardar', [IncidenciaController::class, 'guardarIncidencia'])->name('incidencias.guardar');
         Route::post('/incidencias/auto-guardar-lote', [IncidenciaController::class, 'autoGuardarLote'])->name('incidencias.autoGuardarLote');
-        Route::post('/incidencias/{id}/desactivar', [IncidenciaController::class, 'desactivarIncidencia'])->name('incidencias.desactivar');
         Route::get('/incidencias/reporte-sin-checar', [IncidenciaController::class, 'reporteSinChecar'])->name('incidencias.reporteSinChecar');
         Route::get('/incidencias/reporte-puntualidad', [IncidenciaController::class, 'reportePuntualidad'])->name('incidencias.reportePuntualidad');
+    });
 
+    Route::middleware('can:actions.incidencias_editar')->group(function () {
+        // Justificar/editar una asistencia y desactivar una incidencia (en la vista solo se muestran a quien tiene este permiso)
+        Route::post('/incidencias/guardar', [IncidenciaController::class, 'guardarIncidencia'])->name('incidencias.guardar');
+        Route::post('/incidencias/{id}/desactivar', [IncidenciaController::class, 'desactivarIncidencia'])->name('incidencias.desactivar');
+    });
+
+    Route::middleware('can:modules.checadores')->group(function () {
         // Checadores CRUD & Lector
         Route::resource('checadores', ChecadorController::class)->except(['create', 'show', 'edit']);
         Route::get('/checadores-lector', [ChecadorController::class, 'lector'])->name('checadores.lector');
@@ -150,26 +171,33 @@ Route::middleware('auth')->group(function () {
         Route::post('/checadores-push/activar-todos', [ChecadorController::class, 'activarPushTodos'])->name('checadores.push.activarTodos');
         Route::post('/checadores-push/desactivar-todos', [ChecadorController::class, 'desactivarPushTodos'])->name('checadores.push.desactivarTodos');
         Route::get('/checadores-push/actividad', [ChecadorWebhookController::class, 'actividadReciente'])->name('checadores.push.actividad');
+    });
 
+    Route::middleware('can:modules.reclutamiento')->group(function () {
         // Reclutamiento
         Route::get('/reclutamiento', [ReclutamientoController::class, 'index'])->name('reclutamiento.index');
         Route::post('/reclutamiento', [ReclutamientoController::class, 'store'])->name('reclutamiento.store');
         Route::post('/reclutamiento/{id}', [ReclutamientoController::class, 'update'])->name('reclutamiento.update');
         Route::get('/reclutamiento/{id}/historial', [ReclutamientoController::class, 'historial'])->name('reclutamiento.historial');
+    });
 
+    Route::middleware('can:modules.historial')->group(function () {
         // Historial de Cambios
         Route::get('/historial', [HistorialController::class, 'index'])->name('historial.index');
     });
 
-    Route::middleware('role:Admin')->group(function () {
+    Route::middleware('can:modules.usuarios')->group(function () {
         Route::resource('usuarios', UsuarioController::class)->only(['index', 'store', 'update']);
         Route::get('/api/usuarios/responsables', [UsuarioController::class, 'apiResponsables'])->name('api.usuarios.responsables');
+    });
 
-        // Roles y permisos (fase 1: protegido por role:Admin hasta migrar las rutas a can:modules.*)
+    Route::middleware('can:modules.roles')->group(function () {
+        // Roles y permisos
         Route::resource('roles', RolController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::put('/roles/{role}/permisos', [RolController::class, 'permisos'])->name('roles.permisos');
         Route::post('/roles/{role}/duplicar', [RolController::class, 'duplicate'])->name('roles.duplicate');
     });
+
 });
 
 

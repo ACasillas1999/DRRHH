@@ -25,7 +25,7 @@ reescribió con el estilo de DRRHH; la de Unidata depende de SweetAlert y de su 
 en lugar de estar escrito a mano en `routes/web.php` (`role:Admin,RH`), en el menú
 (`data-roles="..."`) y en `UsuarioController::ROLES`.
 
-**Estado actual:** Fase 1 terminada y probada en el .117 (2026-11-02). Siguiente: Fase 2.
+**Estado actual:** Fase 2 en curso: rutas ya con `can:` y probadas (2026-11-03). Siguiente: menú, `@can` en vistas y `UsuarioController`.
 Actualiza esta línea y las casillas cuando avance.
 
 ## Decisiones (no revertir sin hablarlo con el usuario)
@@ -69,8 +69,10 @@ Actualiza esta línea y las casillas cuando avance.
 
 Si la tabla `roles` no existe, estos cambios dejan a todos los usuarios con 403/500.
 
-- [ ] `routes/web.php`: cambiar cada grupo `role:...` por `can:modules.<clave>`, según el módulo.
-      `/empleados/{n}/incapacidades/subir` → `can:actions.incapacidades_subir`. `/roles` → `can:modules.roles`.
+- [x] `routes/web.php`: 17 grupos `can:` (mismas 75 rutas, mismo orden). `/empleados/{n}/incapacidades/subir` → `can:actions.incapacidades_subir`.
+      Nueva acción `actions.incidencias_editar` (guardar + desactivar incidencia); ver y auto-guardar-lote quedan en `modules.incidencias`.
+      Decisión del usuario (2026-11-03): por ahora Nominas/Jefe/Gerente/Encargado SÍ entran a Incidencias (solo ver); se activó desde /roles.
+      Probado: Admin 200 en 23 páginas; Jefe y Nominas 403 donde no tienen permiso, POST guardar/desactivar/subir incapacidad → 403.
 - [ ] `layouts/app.blade.php`: cambiar `data-roles="..."` por `data-perm="modules.<clave>"` y que
       `filterMenuByRole()` filtre con `auth()->user()->roleModel?->permisosActivos()`.
       Los enlaces "Próx" (Vacaciones, Incapacidades) siguen sin módulo: decidir con el usuario.
@@ -88,6 +90,11 @@ Si la tabla `roles` no existe, estos cambios dejan a todos los usuarios con 403/
 | RH | Todos menos `usuarios` y `roles` + `incapacidades_subir` |
 | Nominas | `empleados`, `altas_imss` |
 | Jefe, Gerente, Encargado | Ninguno (solo dashboard, que no lleva permiso) |
+
+## Pendientes detectados en fase 2
+
+- Jefe/Gerente/Encargado ven a TODOS los empleados en Incidencias; el legacy (`incidencias.php:224`, `vacaciones.php:107`) les filtra a su gente. Falta portar ese filtro.
+- `/diario/eventos-feed` está en `modules.diario`, pero el calendario del expediente (`empleados/show`) lo llama: Nominas ve el expediente y el calendario recibe 403. Ya pasaba antes con `role:Admin,RH`.
 
 ## Bug conocido (se corrige en la fase 2)
 

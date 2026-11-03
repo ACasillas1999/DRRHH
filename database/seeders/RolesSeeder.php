@@ -26,7 +26,7 @@ class RolesSeeder extends Seeder
 
         $roles = [
             'Admin'     => ['Administrador',     '#1d4ed8', ['modules' => array_keys(config('permissions.modules')), 'actions' => array_keys(config('permissions.actions'))]],
-            'RH'        => ['Recursos Humanos',  '#16a34a', ['modules' => $rhModulos, 'actions' => ['incapacidades_subir']]],
+            'RH'        => ['Recursos Humanos',  '#16a34a', ['modules' => $rhModulos, 'actions' => ['incapacidades_subir', 'incidencias_editar']]],
             'Nominas'   => ['Nóminas',           '#d97706', ['modules' => ['empleados', 'altas_imss'], 'actions' => []]],
             'Jefe'      => ['Jefe',              '#64748b', ['modules' => [], 'actions' => []]],
             'Gerente'   => ['Gerente',           '#64748b', ['modules' => [], 'actions' => []]],

@@ -33,5 +33,6 @@ return [
     ],
     'actions' => [
         'incapacidades_subir' => ['label' => 'Subir incapacidades', 'desc' => 'Subir el documento de una incapacidad desde el expediente'],
+        'incidencias_editar'  => ['label' => 'Editar incidencias',  'desc' => 'Justificar o editar una asistencia y desactivar incidencias'],
     ],
 ];
