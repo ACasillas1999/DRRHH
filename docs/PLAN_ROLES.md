@@ -25,7 +25,7 @@ reescribió con el estilo de DRRHH; la de Unidata depende de SweetAlert y de su 
 en lugar de estar escrito a mano en `routes/web.php` (`role:Admin,RH`), en el menú
 (`data-roles="..."`) y en `UsuarioController::ROLES`.
 
-**Estado actual:** Fase 2 terminada y probada (2026-11-03). Queda el opcional de borrar `EnsureUserHasRole` y los pendientes de abajo.
+**Estado actual:** Módulo terminado (fases 1 y 2, 2026-11-03). Solo quedan los pendientes de abajo.
 Actualiza esta línea y las casillas cuando avance.
 
 ## Decisiones (no revertir sin hablarlo con el usuario)
@@ -85,7 +85,7 @@ Si la tabla `roles` no existe, estos cambios dejan a todos los usuarios con 403/
 - [x] `incidencias.autoGuardarLote` movido a `actions.incidencias_editar` (+ `if (!PUEDE_EDITAR_INCIDENCIAS) return;` en el JS):
       quien solo ve Incidencias ya no escribe en la BD al consultar el checador.
 - [x] Probado con Admin, Jefe y Nominas: menú y dashboard coinciden con lo que abre la URL; URL a mano → 403.
-- [ ] Opcional, cuando todo funcione: borrar el middleware `EnsureUserHasRole` y su alias `role` en `bootstrap/app.php`.
+- [x] Alias `role` quitado de `bootstrap/app.php` (2026-11-03). El archivo `EnsureUserHasRole.php` se deja sin uso por decisión del usuario.
 
 ## Matriz inicial (la que crea el seeder)
 
