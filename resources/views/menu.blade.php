@@ -347,14 +347,9 @@
 
     <!-- Accesos Rápidos Principales -->
     <h2 class="section-title">Accesos Rápidos</h2>
-    @php
-        // Mismos roles que los middleware 'role:' de routes/web.php, para no mostrar links que darían 403
-        $rol = auth()->user()->Rol;
-        $esRH = in_array($rol, ['Admin', 'RH']);
-        $veEmpleados = in_array($rol, ['Admin', 'RH', 'Nominas']);
-    @endphp
+    {{-- Cada link usa el mismo permiso que su ruta (tabla roles, se edita en /roles); la tarjeta sale si tiene al menos un link visible --}}
     <div class="actions-grid">
-        @if($esRH)
+        @canany(['modules.puestos', 'modules.reclutamiento', 'modules.empleados', 'modules.reportes'])
         <div class="action-card">
             <div class="action-card-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -367,15 +362,15 @@
             </div>
             <p class="action-card-desc">Puestos a cubrir, candidatos en proceso, personal y reportes de la plantilla.</p>
             <div class="action-links">
-                <a href="{{ route('puestos.index') }}">Puestos <span>&rsaquo;</span></a>
-                <a href="{{ route('reclutamiento.index') }}">Reclutamiento <span>&rsaquo;</span></a>
-                <a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>
-                <a href="{{ route('reportes.index') }}">Reportes <span>&rsaquo;</span></a>
+                @can('modules.puestos')<a href="{{ route('puestos.index') }}">Puestos <span>&rsaquo;</span></a>@endcan
+                @can('modules.reclutamiento')<a href="{{ route('reclutamiento.index') }}">Reclutamiento <span>&rsaquo;</span></a>@endcan
+                @can('modules.empleados')<a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>@endcan
+                @can('modules.reportes')<a href="{{ route('reportes.index') }}">Reportes <span>&rsaquo;</span></a>@endcan
             </div>
         </div>
-        @endif
+        @endcanany
 
-        @if($veEmpleados)
+        @canany(['modules.altas_imss', 'modules.razones_sociales', 'modules.puestos', 'modules.reclutamiento', 'modules.empleados', 'modules.reportes', 'modules.incidencias'])
         <div class="action-card">
             <div class="action-card-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -386,28 +381,22 @@
             </div>
             <p class="action-card-desc">Expedientes, IMSS, estructura, ausencias e incidencias del personal.</p>
             <div class="action-links action-links-2col">
-                <a href="{{ route('altas-imss.index') }}">Altas/Bajas IMSS <span>&rsaquo;</span></a>
-                @if($esRH)
-                <a href="{{ route('razones-sociales.index') }}">Razones Sociales <span>&rsaquo;</span></a>
-                <a href="{{ route('puestos.index') }}">Puestos <span>&rsaquo;</span></a>
-                <a href="{{ route('reclutamiento.index') }}">Reclutamiento <span>&rsaquo;</span></a>
-                @endif
-                <a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>
-                @if($esRH)
-                <a href="{{ route('reportes.index') }}">Reportes <span>&rsaquo;</span></a>
-                @endif
+                @can('modules.altas_imss')<a href="{{ route('altas-imss.index') }}">Altas/Bajas IMSS <span>&rsaquo;</span></a>@endcan
+                @can('modules.razones_sociales')<a href="{{ route('razones-sociales.index') }}">Razones Sociales <span>&rsaquo;</span></a>@endcan
+                @can('modules.puestos')<a href="{{ route('puestos.index') }}">Puestos <span>&rsaquo;</span></a>@endcan
+                @can('modules.reclutamiento')<a href="{{ route('reclutamiento.index') }}">Reclutamiento <span>&rsaquo;</span></a>@endcan
+                @can('modules.empleados')<a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>@endcan
+                @can('modules.reportes')<a href="{{ route('reportes.index') }}">Reportes <span>&rsaquo;</span></a>@endcan
                 {{-- Vacaciones e Incapacidades aún no se migran (en el menú lateral salen como "Próx") --}}
                 <span class="link-pronto">Vacaciones <small>Próx</small></span>
-                @if($esRH)
-                <span class="link-pronto">Incapacidades <small>Próx</small></span>
-                <a href="{{ route('incidencias.index') }}">Incidencias <span>&rsaquo;</span></a>
-                @endif
+                @can('actions.incapacidades_subir')<span class="link-pronto">Incapacidades <small>Próx</small></span>@endcan
+                @can('modules.incidencias')<a href="{{ route('incidencias.index') }}">Incidencias <span>&rsaquo;</span></a>@endcan
             </div>
 
         </div>
-        @endif
+        @endcanany
 
-        @if($esRH)
+        @canany(['modules.puestos', 'modules.reclutamiento', 'modules.reportes', 'modules.empleados', 'modules.inventario'])
         <div class="action-card">
             <div class="action-card-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -418,15 +407,15 @@
             </div>
             <p class="action-card-desc">Estructura de puestos y reportes de la plantilla.</p>
             <div class="action-links">
-                <a href="{{ route('puestos.index') }}">Puestos <span>&rsaquo;</span></a>
-                <a href="{{ route('reclutamiento.index') }}">Reclutamiento <span>&rsaquo;</span></a>
-                <a href="{{ route('reportes.index') }}">Reportes <span>&rsaquo;</span></a>
-                <a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>
+                @can('modules.puestos')<a href="{{ route('puestos.index') }}">Puestos <span>&rsaquo;</span></a>@endcan
+                @can('modules.reclutamiento')<a href="{{ route('reclutamiento.index') }}">Reclutamiento <span>&rsaquo;</span></a>@endcan
+                @can('modules.reportes')<a href="{{ route('reportes.index') }}">Reportes <span>&rsaquo;</span></a>@endcan
+                @can('modules.empleados')<a href="{{ route('empleados.index') }}">Empleados <span>&rsaquo;</span></a>@endcan
                 {{-- Inventario aún no se migra: su ruta solo muestra la página de mantenimiento --}}
-                <span class="link-pronto">Inventario <small>Próx</small></span>
+                @can('modules.inventario')<span class="link-pronto">Inventario <small>Próx</small></span>@endcan
             </div>
 
         </div>
-        @endif
+        @endcanany
     </div>
 @endsection

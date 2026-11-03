@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Puesto;
+use App\Models\Role;
 use App\Models\Usuario;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -12,8 +13,6 @@ use Illuminate\View\View;
 
 class UsuarioController extends Controller
 {
-    private const ROLES = ['Admin', 'RH', 'Nominas', 'Jefe', 'Gerente', 'Encargado'];
-
     public function index(): View
     {
         $usuarios = Usuario::orderBy('Nombre')->get();
@@ -27,7 +26,8 @@ class UsuarioController extends Controller
         return view('usuarios.index', [
             'usuarios' => $usuarios,
             'departamentos' => $departamentos,
-            'roles' => self::ROLES,
+            // Los roles salen de la tabla roles (se crean en /roles)
+            'roles' => Role::orderBy('name')->pluck('name'),
         ]);
     }
 
@@ -38,7 +38,7 @@ class UsuarioController extends Controller
             'nombre' => ['required', 'string', 'max:150'],
             'correo' => ['required', 'email', 'max:150'],
             'telefono' => ['nullable', 'string', 'max:30'],
-            'rol' => ['required', 'string', 'in:' . implode(',', self::ROLES)],
+            'rol' => ['required', 'string', 'exists:roles,name'],
             'departamento' => ['nullable', 'string', 'max:150'],
             'responsable' => ['nullable', 'string', 'max:50'],
             'password' => ['required', 'string', 'min:6'],
@@ -67,7 +67,7 @@ class UsuarioController extends Controller
             'nombre' => ['required', 'string', 'max:150'],
             'correo' => ['required', 'email', 'max:150'],
             'telefono' => ['nullable', 'string', 'max:30'],
-            'rol' => ['required', 'string', 'in:' . implode(',', self::ROLES)],
+            'rol' => ['required', 'string', 'exists:roles,name'],
             'departamento' => ['nullable', 'string', 'max:150'],
             'responsable' => ['nullable', 'string', 'max:50'],
         ]);

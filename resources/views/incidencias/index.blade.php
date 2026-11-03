@@ -1549,6 +1549,9 @@
             });
         });
 
+        // Quien solo puede ver incidencias no guarda nada en la BD (la ruta también lo bloquea)
+        if (!PUEDE_EDITAR_INCIDENCIAS) return;
+
         fetch(`{{ route('incidencias.autoGuardarLote') }}`, {
             method: 'POST',
             headers: {

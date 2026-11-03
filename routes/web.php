@@ -150,14 +150,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/incidencias', [IncidenciaController::class, 'index'])->name('incidencias.index');
         Route::get('/incidencias/reportes', [IncidenciaController::class, 'reportesVista'])->name('incidencias.reportes');
         Route::get('/incidencias/biometrico', [IncidenciaController::class, 'consultarBiometrico'])->name('incidencias.biometrico');
-        Route::post('/incidencias/auto-guardar-lote', [IncidenciaController::class, 'autoGuardarLote'])->name('incidencias.autoGuardarLote');
         Route::get('/incidencias/reporte-sin-checar', [IncidenciaController::class, 'reporteSinChecar'])->name('incidencias.reporteSinChecar');
         Route::get('/incidencias/reporte-puntualidad', [IncidenciaController::class, 'reportePuntualidad'])->name('incidencias.reportePuntualidad');
     });
 
     Route::middleware('can:actions.incidencias_editar')->group(function () {
-        // Justificar/editar una asistencia y desactivar una incidencia (en la vista solo se muestran a quien tiene este permiso)
+        // Justificar/editar una asistencia, auto-guardado de la Conciliación y desactivar una incidencia (en la vista solo se muestran a quien tiene este permiso)
         Route::post('/incidencias/guardar', [IncidenciaController::class, 'guardarIncidencia'])->name('incidencias.guardar');
+        // Lo dispara la Conciliación al consultar el checador: guarda solas las faltas/retardos detectados
+        Route::post('/incidencias/auto-guardar-lote', [IncidenciaController::class, 'autoGuardarLote'])->name('incidencias.autoGuardarLote');
         Route::post('/incidencias/{id}/desactivar', [IncidenciaController::class, 'desactivarIncidencia'])->name('incidencias.desactivar');
     });
 

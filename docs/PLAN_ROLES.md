@@ -25,7 +25,7 @@ reescribió con el estilo de DRRHH; la de Unidata depende de SweetAlert y de su 
 en lugar de estar escrito a mano en `routes/web.php` (`role:Admin,RH`), en el menú
 (`data-roles="..."`) y en `UsuarioController::ROLES`.
 
-**Estado actual:** Fase 2 en curso: rutas ya con `can:` y probadas (2026-11-03). Siguiente: menú, `@can` en vistas y `UsuarioController`.
+**Estado actual:** Fase 2 terminada y probada (2026-11-03). Queda el opcional de borrar `EnsureUserHasRole` y los pendientes de abajo.
 Actualiza esta línea y las casillas cuando avance.
 
 ## Decisiones (no revertir sin hablarlo con el usuario)
@@ -79,11 +79,12 @@ Si la tabla `roles` no existe, estos cambios dejan a todos los usuarios con 403/
 - [x] Menú lateral: `data-roles` → `data-perm` (varios separados por coma = basta uno; sin atributo = todos). `filterMenuByPerm()`
       con `permisosActivos()` vía `@json`. Vacaciones (Próx) sin permiso; Incapacidades (Próx) → `actions.incapacidades_subir`;
       menú padre Incidencias → `modules.incidencias,modules.checadores`. Probado: prender Puestos a Nominas en /roles hace aparecer el link.
-- [ ] `UsuarioController`: cambiar la constante `ROLES` por `Role::orderBy('name')->pluck('name')`
-      (en `index` y en las dos reglas `in:` de validación).
+- [x] `UsuarioController`: constante `ROLES` → `Role::orderBy('name')->pluck('name')`; validación `in:` → `exists:roles,name`.
 - [x] `$rolLabels` del layout → `roleModel->description`.
-- [ ] Dashboard (`menu.blade.php`): `$esRH` / `$veEmpleados` → `@can` por link.
-- [ ] Probar con cada rol: lo que ve en el menú coincide con lo que le deja abrir la URL; URL protegida a mano → 403.
+- [x] Dashboard (`menu.blade.php`): `$esRH` / `$veEmpleados` → `@canany` por tarjeta + `@can` por link.
+- [x] `incidencias.autoGuardarLote` movido a `actions.incidencias_editar` (+ `if (!PUEDE_EDITAR_INCIDENCIAS) return;` en el JS):
+      quien solo ve Incidencias ya no escribe en la BD al consultar el checador.
+- [x] Probado con Admin, Jefe y Nominas: menú y dashboard coinciden con lo que abre la URL; URL a mano → 403.
 - [ ] Opcional, cuando todo funcione: borrar el middleware `EnsureUserHasRole` y su alias `role` en `bootstrap/app.php`.
 
 ## Matriz inicial (la que crea el seeder)
