@@ -76,12 +76,13 @@ Si la tabla `roles` no existe, estos cambios dejan a todos los usuarios con 403/
 - [x] Vistas: `in_array(...->Rol, [...])` → `@can` / `->can()` (`Usuario` ahora usa el trait `Authorizable`). empleados/show: subir incapacidad
       (`actions.incapacidades_subir`), botón Inventario (`modules.inventario`). incidencias: Justificar/Editar + su modal, botón Eliminar
       y botones Guardar/Justificar de Conciliación (antes los veía todo el que entraba) → `actions.incidencias_editar`. Probado 2026-11-03.
-- [ ] `layouts/app.blade.php`: cambiar `data-roles="..."` por `data-perm="modules.<clave>"` y que
-      `filterMenuByRole()` filtre con `auth()->user()->roleModel?->permisosActivos()`.
-      Los enlaces "Próx" (Vacaciones, Incapacidades) siguen sin módulo: decidir con el usuario.
+- [x] Menú lateral: `data-roles` → `data-perm` (varios separados por coma = basta uno; sin atributo = todos). `filterMenuByPerm()`
+      con `permisosActivos()` vía `@json`. Vacaciones (Próx) sin permiso; Incapacidades (Próx) → `actions.incapacidades_subir`;
+      menú padre Incidencias → `modules.incidencias,modules.checadores`. Probado: prender Puestos a Nominas en /roles hace aparecer el link.
 - [ ] `UsuarioController`: cambiar la constante `ROLES` por `Role::orderBy('name')->pluck('name')`
       (en `index` y en las dos reglas `in:` de validación).
-- [ ] `$rolLabels` del layout: usar `roleModel->description` en lugar del arreglo fijo.
+- [x] `$rolLabels` del layout → `roleModel->description`.
+- [ ] Dashboard (`menu.blade.php`): `$esRH` / `$veEmpleados` → `@can` por link.
 - [ ] Probar con cada rol: lo que ve en el menú coincide con lo que le deja abrir la URL; URL protegida a mano → 403.
 - [ ] Opcional, cuando todo funcione: borrar el middleware `EnsureUserHasRole` y su alias `role` en `bootstrap/app.php`.
 

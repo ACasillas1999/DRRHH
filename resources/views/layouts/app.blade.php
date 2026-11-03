@@ -678,7 +678,7 @@
 
         <nav class="sidebar-menu">
             <!-- 1. Dashboard / Menú Principal -->
-            <a href="{{ url('/') }}" class="menu-item {{ Request::is('/') ? 'active' : '' }}" data-roles="Admin,RH,Nominas,Jefe,Gerente,Encargado">
+            <a href="{{ url('/') }}" class="menu-item {{ Request::is('/') ? 'active' : '' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="7" height="9"></rect>
                     <rect x="14" y="3" width="7" height="5"></rect>
@@ -689,7 +689,7 @@
             </a>
 
             <!-- 2. Empleados -->
-            <a href="{{ route('empleados.index') }}" class="menu-item {{ Request::is('empleados*') ? 'active' : '' }}" data-roles="Admin,RH,Nominas">
+            <a href="{{ route('empleados.index') }}" class="menu-item {{ Request::is('empleados*') ? 'active' : '' }}" data-perm="modules.empleados">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
@@ -700,7 +700,7 @@
             </a>
 
             <!-- 3. Altas/Bajas IMSS -->
-            <a href="{{ route('altas-imss.index') }}" class="menu-item {{ Request::is('altas-imss*') ? 'active' : '' }}" data-roles="Admin,RH,Nominas">
+            <a href="{{ route('altas-imss.index') }}" class="menu-item {{ Request::is('altas-imss*') ? 'active' : '' }}" data-perm="modules.altas_imss">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                     <circle cx="8.5" cy="7" r="4"></circle>
@@ -711,7 +711,7 @@
             </a>
 
             <!-- 4. Razones Sociales -->
-            <a href="{{ route('razones-sociales.index') }}" class="menu-item {{ Request::is('razones-sociales*') ? 'active' : '' }}" data-roles="Admin,RH">
+            <a href="{{ route('razones-sociales.index') }}" class="menu-item {{ Request::is('razones-sociales*') ? 'active' : '' }}" data-perm="modules.razones_sociales">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                     <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
@@ -721,7 +721,7 @@
 
             <!-- 5. Puestos (Desplegable en Acordeón) -->
             <div class="menu-item-group" style="display: flex; flex-direction: column;">
-                <a href="javascript:void(0)" class="menu-item menu-parent-toggle {{ Request::is('puestos*') || Request::is('organigrama*') || Request::is('responsables*') || Request::is('ubicaciones*') ? 'active parent-active' : '' }}" onclick="toggleSidebarMenu(this)" data-roles="Admin,RH">
+                <a href="javascript:void(0)" class="menu-item menu-parent-toggle {{ Request::is('puestos*') || Request::is('organigrama*') || Request::is('responsables*') || Request::is('ubicaciones*') ? 'active parent-active' : '' }}" onclick="toggleSidebarMenu(this)" data-perm="modules.puestos">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -732,19 +732,19 @@
                     </svg>
                 </a>
                 <div class="menu-subitems {{ Request::is('puestos*') || Request::is('organigrama*') || Request::is('responsables*') || Request::is('ubicaciones*') ? '' : 'hidden' }}">
-                    <a href="{{ route('puestos.index') }}" class="menu-item menu-subitem {{ Request::is('puestos') || (Request::is('puestos*') && !Request::is('puestos/*/edit') && !Request::is('puestos/crear')) ? 'active' : '' }}" data-roles="Admin,RH">
+                    <a href="{{ route('puestos.index') }}" class="menu-item menu-subitem {{ Request::is('puestos') || (Request::is('puestos*') && !Request::is('puestos/*/edit') && !Request::is('puestos/crear')) ? 'active' : '' }}" data-perm="modules.puestos">
                         <span class="subitem-bullet"></span>
                         <span>Lista de Puestos</span>
                     </a>
-                    <a href="{{ route('organigrama.index') }}" class="menu-item menu-subitem {{ Request::is('organigrama*') ? 'active' : '' }}" data-roles="Admin,RH">
+                    <a href="{{ route('organigrama.index') }}" class="menu-item menu-subitem {{ Request::is('organigrama*') ? 'active' : '' }}" data-perm="modules.puestos">
                         <span class="subitem-bullet"></span>
                         <span>Organigrama</span>
                     </a>
-                    <a href="{{ route('responsables.index') }}" class="menu-item menu-subitem {{ Request::is('responsables*') ? 'active' : '' }}" data-roles="Admin,RH">
+                    <a href="{{ route('responsables.index') }}" class="menu-item menu-subitem {{ Request::is('responsables*') ? 'active' : '' }}" data-perm="modules.puestos">
                         <span class="subitem-bullet"></span>
                         <span>Responsables</span>
                     </a>
-                    <a href="{{ route('ubicaciones.index') }}" class="menu-item menu-subitem {{ Request::is('ubicaciones*') ? 'active' : '' }}" data-roles="Admin,RH">
+                    <a href="{{ route('ubicaciones.index') }}" class="menu-item menu-subitem {{ Request::is('ubicaciones*') ? 'active' : '' }}" data-perm="modules.puestos">
                         <span class="subitem-bullet"></span>
                         <span>Ubicaciones</span>
                     </a>
@@ -752,7 +752,7 @@
             </div>
 
             <!-- 6. Reportes -->
-            <a href="{{ route('reportes.index') }}" class="menu-item {{ Request::is('reportes*') || Request::is('estimados*') ? 'active' : '' }}" data-roles="Admin,RH">
+            <a href="{{ route('reportes.index') }}" class="menu-item {{ Request::is('reportes*') || Request::is('estimados*') ? 'active' : '' }}" data-perm="modules.reportes">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="20" x2="18" y2="10"></line>
                     <line x1="12" y1="20" x2="12" y2="4"></line>
@@ -762,7 +762,7 @@
             </a>
 
             <!-- 7. Usuarios -->
-            <a href="{{ route('usuarios.index') }}" class="menu-item {{ Request::is('usuarios*') ? 'active' : '' }}" data-roles="Admin">
+            <a href="{{ route('usuarios.index') }}" class="menu-item {{ Request::is('usuarios*') ? 'active' : '' }}" data-perm="modules.usuarios">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -771,7 +771,7 @@
             </a>
 
             <!-- 7b. Roles y Permisos -->
-            <a href="{{ route('roles.index') }}" class="menu-item {{ Request::is('roles*') ? 'active' : '' }}" data-roles="Admin">
+            <a href="{{ route('roles.index') }}" class="menu-item {{ Request::is('roles*') ? 'active' : '' }}" data-perm="modules.roles">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     <path d="M9 12l2 2 4-4"></path>
@@ -780,7 +780,7 @@
             </a>
 
             <!-- 8. Historial -->
-            <a href="{{ route('historial.index') }}" class="menu-item {{ Request::is('historial*') ? 'active' : '' }}" data-roles="Admin,RH">
+            <a href="{{ route('historial.index') }}" class="menu-item {{ Request::is('historial*') ? 'active' : '' }}" data-perm="modules.historial">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
@@ -789,7 +789,7 @@
             </a>
 
             <!-- 9. Inventario -->
-            <a href="#inventario" class="menu-item menu-item-soon" data-roles="Admin,RH">
+            <a href="#inventario" class="menu-item menu-item-soon" data-perm="modules.inventario">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
@@ -800,7 +800,7 @@
             </a>
 
             <!-- 10. Vacaciones -->
-            <a href="#vacaciones" class="menu-item menu-item-soon" data-roles="Admin,RH,Jefe,Gerente,Encargado,Nominas">
+            <a href="#vacaciones" class="menu-item menu-item-soon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                 </svg>
@@ -809,7 +809,7 @@
             </a>
 
             <!-- 11. Incapacidades -->
-            <a href="#incapacidades" class="menu-item menu-item-soon" data-roles="Admin,RH">
+            <a href="#incapacidades" class="menu-item menu-item-soon" data-perm="actions.incapacidades_subir">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                 </svg>
@@ -818,7 +818,7 @@
             </a>
 
             <!-- 12. Diario -->
-            <a href="{{ route('diario.index') }}" class="menu-item {{ Request::is('diario*') ? 'active' : '' }}" data-roles="Admin,RH">
+            <a href="{{ route('diario.index') }}" class="menu-item {{ Request::is('diario*') ? 'active' : '' }}" data-perm="modules.diario">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -830,7 +830,7 @@
 
             <!-- 13. Asistencias y Checadores (Desplegable en Acordeón) -->
             <div class="menu-item-group" style="display: flex; flex-direction: column;">
-                <a href="javascript:void(0)" class="menu-item menu-parent-toggle {{ Request::is('incidencias*') || Request::is('checadores*') ? 'active parent-active' : '' }}" onclick="toggleSidebarMenu(this)" data-roles="Admin,RH,Jefe,Gerente,Encargado,Nominas">
+                <a href="javascript:void(0)" class="menu-item menu-parent-toggle {{ Request::is('incidencias*') || Request::is('checadores*') ? 'active parent-active' : '' }}" onclick="toggleSidebarMenu(this)" data-perm="modules.incidencias,modules.checadores">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 14 14"></polyline>
@@ -841,19 +841,19 @@
                     </svg>
                 </a>
                 <div class="menu-subitems {{ Request::is('incidencias*') || Request::is('checadores*') ? '' : 'hidden' }}">
-                    <a href="{{ route('incidencias.index') }}" class="menu-item menu-subitem {{ Request::is('incidencias*') && !Request::is('incidencias/reportes*') ? 'active' : '' }}" data-roles="Admin,RH,Jefe,Gerente,Encargado,Nominas">
+                    <a href="{{ route('incidencias.index') }}" class="menu-item menu-subitem {{ Request::is('incidencias*') && !Request::is('incidencias/reportes*') ? 'active' : '' }}" data-perm="modules.incidencias">
                         <span class="subitem-bullet"></span>
                         <span>Incidencias y Asistencias</span>
                     </a>
-                    <a href="{{ route('incidencias.reportes') }}" class="menu-item menu-subitem {{ Request::is('incidencias/reportes*') ? 'active' : '' }}" data-roles="Admin,RH,Jefe,Gerente,Encargado,Nominas">
+                    <a href="{{ route('incidencias.reportes') }}" class="menu-item menu-subitem {{ Request::is('incidencias/reportes*') ? 'active' : '' }}" data-perm="modules.incidencias">
                         <span class="subitem-bullet"></span>
                         <span>Reportes de Asistencia</span>
                     </a>
-                    <a href="{{ route('checadores.index') }}" class="menu-item menu-subitem {{ Request::is('checadores') || (Request::is('checadores*') && !Request::is('checadores-lector*')) ? 'active' : '' }}" data-roles="Admin,RH">
+                    <a href="{{ route('checadores.index') }}" class="menu-item menu-subitem {{ Request::is('checadores') || (Request::is('checadores*') && !Request::is('checadores-lector*')) ? 'active' : '' }}" data-perm="modules.checadores">
                         <span class="subitem-bullet"></span>
                         <span>Configurar Checadores</span>
                     </a>
-                    <a href="{{ route('checadores.lector') }}" class="menu-item menu-subitem {{ Request::is('checadores-lector*') ? 'active' : '' }}" data-roles="Admin,RH">
+                    <a href="{{ route('checadores.lector') }}" class="menu-item menu-subitem {{ Request::is('checadores-lector*') ? 'active' : '' }}" data-perm="modules.checadores">
                         <span class="subitem-bullet"></span>
                         <span>Lector de Eventos (ISAPI)</span>
                     </a>
@@ -861,7 +861,7 @@
             </div>
 
             <!-- 15. Reclutamiento -->
-            <a href="{{ route('reclutamiento.index') }}" class="menu-item {{ Request::is('reclutamiento*') ? 'active' : '' }}" data-roles="Admin,RH">
+            <a href="{{ route('reclutamiento.index') }}" class="menu-item {{ Request::is('reclutamiento*') ? 'active' : '' }}" data-perm="modules.reclutamiento">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -944,17 +944,13 @@
 
                 <!-- Perfil Widget -->
                 @php
-                    $rolLabels = [
-                        'Admin' => 'Administrador', 'RH' => 'Recursos Humanos', 'Nominas' => 'Nóminas',
-                        'Jefe' => 'Jefe', 'Gerente' => 'Gerente', 'Encargado' => 'Encargado',
-                    ];
                     $usuarioActual = auth()->user();
                 @endphp
                 <div class="profile-widget">
                     <div class="avatar" id="avatarLetter">{{ $usuarioActual ? mb_substr($usuarioActual->Nombre, 0, 1) : '?' }}</div>
                     <div class="user-details">
                         <span class="user-name" id="userNameLabel">{{ $usuarioActual->Nombre ?? '' }}</span>
-                        <span class="user-role" id="userRoleLabel">{{ $rolLabels[$usuarioActual->Rol ?? ''] ?? ($usuarioActual->Rol ?? '') }}</span>
+                        <span class="user-role" id="userRoleLabel">{{ $usuarioActual?->roleModel?->description ?? ($usuarioActual->Rol ?? '') }}</span>
                     </div>
                 </div>
             </div>
@@ -1011,18 +1007,19 @@
                 wrapper.classList.add('expanded');
             }
 
-            // 2. Filtrado del menú por el rol real de la sesión (server-side, sin selector)
-            function filterMenuByRole(role) {
-                menuItems.forEach(item => {
-                    const rolesPermitidos = item.getAttribute('data-roles')?.split(',') || [];
-                    item.classList.toggle('hidden-role', !rolesPermitidos.includes(role));
-                });
+            // 2. Filtrado del menú por los permisos del rol (tabla roles, se editan en /roles)
+            // data-perm puede llevar varios permisos separados por coma: basta con tener uno. Sin data-perm lo ve cualquier usuario logueado
+            const permisosUsuario = @json($usuarioActual?->roleModel?->permisosActivos() ?? []);
 
-                const event = new CustomEvent('roleChanged', { detail: { role: role } });
-                document.dispatchEvent(event);
+            function filterMenuByPerm() {
+                menuItems.forEach(item => {
+                    const requeridos = item.getAttribute('data-perm')?.split(',') || [];
+                    const visible = requeridos.length === 0 || requeridos.some(p => permisosUsuario.includes(p));
+                    item.classList.toggle('hidden-role', !visible);
+                });
             }
 
-            filterMenuByRole('{{ $usuarioActual->Rol ?? '' }}');
+            filterMenuByPerm();
 
             // 3. Control de Modo Oscuro
             function setTheme(theme) {
