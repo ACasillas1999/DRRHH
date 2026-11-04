@@ -43,9 +43,9 @@
 
     .accion-inline { display: flex; gap: 0.4rem; align-items: center; }
     .accion-inline input { width: 150px; }
-    .archivo-oculto { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+    .accion-inline .archivo-oculto { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+    .accion-inline label { position: relative; }
     .archivo-nombre { max-width: 120px; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: var(--text-muted); }
-
 
     .estatus-activo { color: var(--activo); font-weight: 600; }
     .estatus-baja { color: var(--baja); font-weight: 600; }

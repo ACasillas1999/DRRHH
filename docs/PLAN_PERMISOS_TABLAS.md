@@ -15,10 +15,10 @@ tiene acceso a qué y queda la puerta abierta a auditoría o permisos por usuari
 - No cambia nada fuera del modelo, el controlador de roles y su vista: rutas `can:`, `@can`,
   `data-perm` del menú y el `Gate::before` siguen igual, porque todos pasan por `hasPermission()`.
 
+- **Un rol por usuario**, como hoy (`usuarios.Rol`). Serán muchos usuarios y muchos roles
+  personalizados, pero cada usuario tiene uno solo.
+
 **Pendiente de confirmar con el equipo:**
-- ¿Un usuario puede tener **varios** roles a la vez, o uno solo como hoy? Si son varios, hace falta
-  además una pivote `role_usuario` y deja de bastar `usuarios.Rol` (afecta al legacy). Este plan
-  asume **un rol por usuario**.
 - ¿El catálogo de permisos sigue en `config/permissions.php` (se sincroniza a la tabla con el seeder)
   o se administra desde pantalla? Este plan asume que **sigue en config**.
 
