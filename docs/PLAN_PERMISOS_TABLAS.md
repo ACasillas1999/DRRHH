@@ -22,7 +22,7 @@ tiene acceso a qué y queda la puerta abierta a auditoría o permisos por usuari
 - ¿El catálogo de permisos sigue en `config/permissions.php` (se sincroniza a la tabla con el seeder)
   o se administra desde pantalla? Este plan asume que **sigue en config**.
 
-**Estado actual:** Sin empezar. Actualiza esta línea y las casillas cuando avance.
+**Estado actual:** Pasos 1-4 hechos en la rama `feat/permisos-tablas` (2026-11-04); sigue el 5. Actualiza esta línea y las casillas cuando avance.
 
 ## Diseño
 
@@ -38,14 +38,17 @@ permission_role  role_id → roles.id | permission_id → permissions.id | PK (r
 
 ## Pasos
 
-- [ ] 1. Rama nueva `feat/permisos-tablas` desde `main` limpio.
-- [ ] 2. Migración que crea `permissions` y `permission_role` (con guard `Schema::hasTable`).
+- [x] 1. Rama nueva `feat/permisos-tablas` desde `main` limpio.
+- [x] 2. Migración que crea `permissions` y `permission_role` (con guard `Schema::hasTable`).
       Correr solo con `php artisan migrate --path=database/migrations/<archivo>.php` (BD compartida).
-- [ ] 3. Seeder `PermissionsSeeder`: llena `permissions` desde `config/permissions.php` con
-      `updateOrCreate` por `clave` (se puede volver a correr sin duplicar).
-- [ ] 4. Copiar el JSON actual a `permission_role`: por cada rol, cada clave en `true` → una fila.
-      Antes: `SELECT id, name, permissions FROM roles;` y guardar el resultado como respaldo.
-- [ ] 5. Modelo `app/Models/Permission.php` y relación `Role::permisos()` (`belongsToMany`).
+      En .117 se creó por phpMyAdmin con el SQL equivalente + INSERT en `migrations` (batch 4).
+- [x] 3. Modelo `Permission` + seeder `PermissionsSeeder`: llena `permissions` desde `config/permissions.php` con
+      `updateOrCreate` por `clave` (se puede volver a correr sin duplicar). En .117: 15 filas, por SQL.
+- [x] 4. Copiar el JSON actual a `permission_role`: por cada rol, cada clave en `true` → una fila.
+      SQL en "Copiar JSON a la pivote" (abajo). En .117: 35 filas, cuadra rol por rol con el JSON.
+      **Repetirla justo antes del merge** (lo editado en `/roles` mientras tanto solo cambia el JSON)
+      y en producción.
+- [ ] 5. Relación `Role::permisos()` (`belongsToMany`).
       **No** llamarla `permissions`: choca con el atributo JSON mientras conviva.
 - [ ] 6. Reescribir `Role::hasPermission()` y `Role::permisosActivos()` para leer la relación.
       Cargar los permisos una sola vez por petición (`loadMissing('permisos')`), porque `@can`
@@ -80,3 +83,33 @@ permission_role  role_id → roles.id | permission_id → permissions.id | PK (r
 
 No se tocan: `routes/web.php`, `AppServiceProvider` (Gate), `app/Models/Usuario.php`,
 `layouts/app.blade.php`, vistas con `@can`.
+
+## Copiar JSON a la pivote (SQL)
+
+MariaDB 10.4 (XAMPP): `JSON_VALUE` devuelve `1` para `true`, por eso se compara `JSON_EXTRACT(...) = 'true'`.
+
+```sql
+-- Ensayo: debe dar Admin = 15
+SELECT r.id, r.name, COUNT(p.id) AS permisos_activos
+FROM roles r
+LEFT JOIN permissions p
+  ON JSON_EXTRACT(r.permissions,
+                  CONCAT('$.', p.seccion, '.', SUBSTRING_INDEX(p.clave, '.', -1))) = 'true'
+GROUP BY r.id, r.name ORDER BY r.id;
+
+-- Copia (para re-sincronizar, antes: DELETE FROM permission_role;)
+INSERT IGNORE INTO permission_role (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+JOIN permissions p
+  ON JSON_EXTRACT(r.permissions,
+                  CONCAT('$.', p.seccion, '.', SUBSTRING_INDEX(p.clave, '.', -1))) = 'true';
+
+-- Verificación: en_json = en_pivote en todas las filas
+SELECT r.id, r.name,
+       (SELECT COUNT(*) FROM permissions p
+         WHERE JSON_EXTRACT(r.permissions,
+                 CONCAT('$.', p.seccion, '.', SUBSTRING_INDEX(p.clave, '.', -1))) = 'true') AS en_json,
+       (SELECT COUNT(*) FROM permission_role pr WHERE pr.role_id = r.id) AS en_pivote
+FROM roles r ORDER BY r.id;
+```

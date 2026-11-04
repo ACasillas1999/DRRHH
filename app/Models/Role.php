@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
@@ -20,6 +21,12 @@ class Role extends Model
     public function usuarios(): HasMany
     {
         return $this->hasMany(Usuario::class, 'Rol', 'name');
+    }
+
+    /** Permisos del rol (pivote permission_role). */
+    public function permisos(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'permission_role');
     }
 
     /**
