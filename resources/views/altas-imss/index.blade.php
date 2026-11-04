@@ -43,6 +43,9 @@
 
     .accion-inline { display: flex; gap: 0.4rem; align-items: center; }
     .accion-inline input { width: 150px; }
+    .archivo-oculto { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+    .archivo-nombre { max-width: 120px; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: var(--text-muted); }
+
 
     .estatus-activo { color: var(--activo); font-weight: 600; }
     .estatus-baja { color: var(--baja); font-weight: 600; }
@@ -116,7 +119,12 @@
                                 <form class="accion-inline" method="POST" action="{{ route('altas-imss.documento', $r->N_Empleado) }}" enctype="multipart/form-data" onsubmit="return confirm('¿Confirmas subir este documento?')">
                                     @csrf
                                     <input type="hidden" name="tipo" value="{{ $esActivo ? 'activo' : 'baja' }}">
-                                    <input type="file" name="documento" accept=".pdf,.doc,.docx" required style="width:140px;">
+                                    <label class="btn btn-secundario btn-sm">
+                                        Seleccionar
+                                        <input type="file" name="documento" accept=".pdf,.doc,.docx" required class="archivo-oculto"
+                                               onchange="this.closest('form').querySelector('.archivo-nombre').textContent = this.files[0]?.name || 'Sin archivo'">
+                                    </label>
+                                    <span class="archivo-nombre">Sin archivo</span>
                                     <button type="submit" class="btn btn-primary btn-sm">Subir</button>
                                 </form>
                             @endif
