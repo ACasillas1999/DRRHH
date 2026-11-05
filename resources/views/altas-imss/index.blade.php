@@ -37,8 +37,15 @@
     .table-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: var(--shadow-sm); overflow: auto; flex: 0 1 auto; min-height: 0; }
     table { width: 100%; border-collapse: collapse; }
     /* Encabezado fijo al bajar; necesita fondo para que las filas no se vean detrás */
-    thead th { position: sticky; top: 0; z-index: 1; background-color: var(--bg-card); text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-    tbody td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--border-color); font-size: 0.82rem; white-space: nowrap; }
+    thead th { position: sticky; top: 0; z-index: 1; background-color: var(--bg-card); text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.75rem 0.75rem; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    tbody td { padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border-color); font-size: 0.82rem; white-space: nowrap; }
+    /* Columnas de texto largo: bajan de renglón en vez de ensanchar la tabla */
+    tbody td.col-texto { white-space: normal; min-width: 120px; max-width: 180px; }
+    /* Empleado = nombre (liga a detalles) + número debajo; antes eran 3 columnas */
+    tbody td.col-empleado { white-space: normal; min-width: 180px; max-width: 240px; }
+    .empleado-nombre { display: block; color: var(--text-main); font-weight: 600; text-decoration: none; }
+    .empleado-nombre:hover { color: var(--primary); text-decoration: underline; }
+    .empleado-num { font-size: 0.72rem; color: var(--text-muted); }
     tbody tr:last-child td { border-bottom: none; }
     tbody tr:hover { background-color: var(--primary-light); }
 
@@ -47,13 +54,15 @@
     .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
 
     .accion-inline { display: flex; gap: 0.4rem; align-items: center; }
-    .accion-inline input { width: 150px; }
+    .accion-inline input { width: 135px; }
     .accion-inline .archivo-oculto { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
     .accion-inline label { position: relative; }
-    .archivo-nombre { max-width: 120px; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: var(--text-muted); }
+    .archivo-nombre { max-width: 90px; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: var(--text-muted); }
 
-    .estatus-activo { color: var(--activo); font-weight: 600; }
-    .estatus-baja { color: var(--baja); font-weight: 600; }
+    /* Estatus como etiqueta chica de color */
+    .estatus-pill { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
+    .estatus-activo { color: var(--activo); background-color: rgba(22, 163, 74, 0.1); }
+    .estatus-baja { color: var(--baja); background-color: rgba(220, 38, 38, 0.1); }
 </style>
 @endpush
 
@@ -83,9 +92,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>N° Empleado</th>
+                    <th>Empleado</th>
                     <th>Estatus</th>
-                    <th>Nombre Completo</th>
                     <th>Fecha Ingreso</th>
                     <th>Fecha IMSS</th>
                     <th>Documento</th>
@@ -93,7 +101,6 @@
                     <th>N° IMSS</th>
                     <th>Razón Social</th>
                     <th>Ubicación Física</th>
-                    <th>Función</th>
                 </tr>
             </thead>
             <tbody>
@@ -103,9 +110,11 @@
                         $fechaMostrar = $esActivo ? $r->Fecha_Alta_IMSS : $r->Fecha_Baja_IMSS;
                     @endphp
                     <tr>
-                        <td>{{ $r->N_Empleado }}</td>
-                        <td class="{{ $esActivo ? 'estatus-activo' : 'estatus-baja' }}">{{ $r->Estatus }}</td>
-                        <td>{{ $r->Nombre_Completo }}</td>
+                        <td class="col-empleado">
+                            <a class="empleado-nombre" href="{{ route('empleados.show', $r->N_Empleado) }}" title="Ver detalles">{{ $r->Nombre_Completo }}</a>
+                            <span class="empleado-num">N° {{ $r->N_Empleado }}</span>
+                        </td>
+                        <td><span class="estatus-pill {{ $esActivo ? 'estatus-activo' : 'estatus-baja' }}">{{ $r->Estatus }}</span></td>
                         <td>{{ $r->Fecha_Ingreso ?: '—' }}</td>
                         <td>
                             @if($fechaMostrar)
@@ -135,14 +144,13 @@
                                 </form>
                             @endif
                         </td>
-                        <td>{{ $r->Nombre_Puesto }}</td>
+                        <td class="col-texto">{{ $r->Nombre_Puesto }}</td>
                         <td>{{ $r->IMSS }}</td>
-                        <td>{{ $r->Nomeclatura }}</td>
-                        <td>{{ $r->Fisica }}</td>
-                        <td><a class="ver-link" href="{{ route('empleados.show', $r->N_Empleado) }}">Ver Detalles</a></td>
+                        <td class="col-texto">{{ $r->Nomeclatura }}</td>
+                        <td class="col-texto">{{ $r->Fisica }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="11" class="empty-state">No hay registros pendientes de alta/baja IMSS.</td></tr>
+                    <tr><td colspan="9" class="empty-state">No hay registros pendientes de alta/baja IMSS.</td></tr>
                 @endforelse
             </tbody>
         </table>
