@@ -30,9 +30,14 @@
     .btn-secundario { background-color: var(--bg-page); border: 1px solid var(--border-color); color: var(--text-main); }
     .btn-sm { padding: 0.4rem 0.7rem; font-size: 0.75rem; }
 
-    .table-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: var(--shadow-sm); overflow-x: auto; }
+    /* La página ocupa justo la pantalla (menos topbar y padding de main) para que no scrollee */
+    .imss-pagina { display: flex; flex-direction: column; height: calc(100vh - var(--topbar-height) - 4rem); min-height: 480px; }
+    @media (max-width: 480px) { .imss-pagina { height: calc(100vh - var(--topbar-height) - 2rem); } }
+    /* La tabla toma el espacio que sobra y scrollea por dentro; min-height: 0 deja que se encoja */
+    .table-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: var(--shadow-sm); overflow: auto; flex: 0 1 auto; min-height: 0; }
     table { width: 100%; border-collapse: collapse; }
-    thead th { text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    /* Encabezado fijo al bajar; necesita fondo para que las filas no se vean detrás */
+    thead th { position: sticky; top: 0; z-index: 1; background-color: var(--bg-card); text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
     tbody td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--border-color); font-size: 0.82rem; white-space: nowrap; }
     tbody tr:last-child td { border-bottom: none; }
     tbody tr:hover { background-color: var(--primary-light); }
@@ -53,6 +58,7 @@
 @endpush
 
 @section('content')
+<div class="imss-pagina">
     @if (session('status'))
         <div class="status-msg status-success">{{ session('status') }}</div>
     @endif
@@ -145,4 +151,5 @@
     <div class="pagination-wrap">
         {{ $registros->links() }}
     </div>
+</div>
 @endsection
