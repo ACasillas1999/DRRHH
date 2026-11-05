@@ -132,7 +132,7 @@
                         <div class="perm-seccion">
                             <h3>{{ $section === 'modules' ? 'Acceso a módulos' : 'Acciones' }}</h3>
                             @foreach ($items as $key => $def)
-                                @php $on = !empty($role->permissions[$section][$key]); @endphp
+                                @php $on = $role->hasPermission("{$section}.{$key}"); @endphp {{-- Estado real: tabla pivote --}}
                                 <div class="perm-row">
                                     <div>
                                         <div class="perm-label">{{ $def['label'] }}</div>

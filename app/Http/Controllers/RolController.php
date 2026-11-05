@@ -25,7 +25,8 @@ class RolController extends Controller
 
     public function index(): View
     {
-        $roles = Role::withCount('usuarios')->orderByDesc('is_system')->orderBy('name')->get();
+        // with('permisos'): trae los permisos de todos los roles en 1 consulta (evita N+1 en los interruptores)
+        $roles = Role::with('permisos')->withCount('usuarios')->orderByDesc('is_system')->orderBy('name')->get();
 
         return view('roles.index', [
             'roles'    => $roles,
