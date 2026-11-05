@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -24,7 +24,6 @@ class RolesSeeder extends Seeder
         // Primero el catálogo: la pivote necesita que existan los ids de permissions
         $this->call(PermissionsSeeder::class);
 
-
         $rhModulos = [
             'empleados', 'altas_imss', 'razones_sociales', 'puestos', 'reportes', 'diario',
             'incidencias', 'checadores', 'reclutamiento', 'historial', 'inventario',
@@ -33,10 +32,11 @@ class RolesSeeder extends Seeder
         $roles = [
             'Admin'     => ['Administrador',     '#1d4ed8', ['modules' => array_keys(config('permissions.modules')), 'actions' => array_keys(config('permissions.actions'))]],
             'RH'        => ['Recursos Humanos',  '#16a34a', ['modules' => $rhModulos, 'actions' => ['incapacidades_subir', 'incidencias_editar']]],
-            'Nominas'   => ['Nóminas',           '#d97706', ['modules' => ['empleados', 'altas_imss'], 'actions' => []]],
-            'Jefe'      => ['Jefe',              '#64748b', ['modules' => [], 'actions' => []]],
-            'Gerente'   => ['Gerente',           '#64748b', ['modules' => [], 'actions' => []]],
-            'Encargado' => ['Encargado',         '#64748b', ['modules' => [], 'actions' => []]],
+            // incidencias para todos: decisión 2026-11-03, temporal hasta ajustar los roles
+            'Nominas'   => ['Nóminas',           '#d97706', ['modules' => ['empleados', 'altas_imss', 'incidencias'], 'actions' => []]],
+            'Jefe'      => ['Jefe',              '#64748b', ['modules' => ['incidencias'], 'actions' => []]],
+            'Gerente'   => ['Gerente',           '#64748b', ['modules' => ['incidencias'], 'actions' => []]],
+            'Encargado' => ['Encargado',         '#64748b', ['modules' => ['incidencias'], 'actions' => []]],
         ];
 
         foreach ($roles as $name => [$description, $color, $grant]) {
@@ -56,7 +56,8 @@ class RolesSeeder extends Seeder
                 'is_system'   => true,
                 'permissions' => $permissions,
             ]);
-             // Solo a roles recién creados: si ya existía, se respetan los permisos editados en /roles
+
+            // Solo a roles recién creados: si ya existía, se respetan los permisos editados en /roles
             if ($role->wasRecentlyCreated) {
                 $role->permisos()->sync(Permission::whereIn('clave', $claves)->pluck('id'));
             }
