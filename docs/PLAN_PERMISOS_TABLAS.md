@@ -22,7 +22,8 @@ tiene acceso a qué y queda la puerta abierta a auditoría o permisos por usuari
 - ¿El catálogo de permisos sigue en `config/permissions.php` (se sincroniza a la tabla con el seeder)
   o se administra desde pantalla? Este plan asume que **sigue en config**.
 
-**Estado actual:** Pasos 1-4 hechos en la rama `feat/permisos-tablas` (2026-11-04); sigue el 5. Actualiza esta línea y las casillas cuando avance.
+**Estado actual:** Pasos 1-11 hechos y probados en la rama `feat/permisos-tablas` (2026-11-05), listo para
+merge a `main`. Faltan: correrlo en producción (ver "Producción" abajo) y el paso 12. Actualiza esta línea y las casillas cuando avance.
 
 ## Diseño
 
@@ -46,26 +47,30 @@ permission_role  role_id → roles.id | permission_id → permissions.id | PK (r
       `updateOrCreate` por `clave` (se puede volver a correr sin duplicar). En .117: 15 filas, por SQL.
 - [x] 4. Copiar el JSON actual a `permission_role`: por cada rol, cada clave en `true` → una fila.
       SQL en "Copiar JSON a la pivote" (abajo). En .117: 35 filas, cuadra rol por rol con el JSON.
-      **Repetirla justo antes del merge** (lo editado en `/roles` mientras tanto solo cambia el JSON)
-      y en producción.
-- [ ] 5. Relación `Role::permisos()` (`belongsToMany`).
+      En .117 no hizo falta repetirla antes del merge: la carpeta del servidor tuvo el código de la rama
+      todo el tiempo y la doble escritura mantuvo JSON = pivote (verificado 2026-11-05). En producción sí.
+- [x] 5. Relación `Role::permisos()` (`belongsToMany`).
       **No** llamarla `permissions`: choca con el atributo JSON mientras conviva.
-- [ ] 6. Reescribir `Role::hasPermission()` y `Role::permisosActivos()` para leer la relación.
-      Cargar los permisos una sola vez por petición (`loadMissing('permisos')`), porque `@can`
-      se llama muchas veces por página.
-- [ ] 7. `RolController::permisos()` (interruptores): `attach()` / `detach()` en vez de reescribir
+- [x] 6. Reescribir `Role::hasPermission()` y `Role::permisosActivos()` para leer la relación.
+      Se usa la propiedad `$this->permisos` (se consulta una vez y queda en memoria del modelo), porque
+      `@can` se llama muchas veces por página. En `/roles` se carga con `Role::with('permisos')` (evita N+1).
+- [x] 7. `RolController::permisos()` (interruptores): `attach()` / `detach()` en vez de reescribir
       el JSON. Seguir aceptando solo claves que existen en el catálogo y mantener el anti-bloqueo
-      (Admin no puede perder `modules.roles`).
-- [ ] 8. `RolController` duplicar: copiar permisos con `sync()`. Crear: rol sin filas en la pivote.
-- [ ] 9. `resources/views/roles/index.blade.php` (línea ~135): estado de cada interruptor desde
+      (Admin no puede perder `modules.roles`). Hecho con `syncWithoutDetaching`/`detach` en una
+      transacción, con **doble escritura** al JSON hasta el paso 12; 422 si una clave no está en `permissions`.
+- [x] 8. `RolController` duplicar: copiar permisos con `sync()`. Crear: rol sin filas en la pivote.
+- [x] 9. `resources/views/roles/index.blade.php` (línea ~135): estado de cada interruptor desde
       la relación.
-- [ ] 10. Actualizar `RolesSeeder` para asignar permisos con la relación.
-- [ ] 11. Pruebas (mismas que la fase 2 de roles):
+- [x] 10. Actualizar `RolesSeeder` para asignar permisos con la relación.
+- [x] 11. Pruebas (mismas que la fase 2 de roles):
       - Admin: 200 en todas las páginas.
       - Nominas/Jefe: 403 donde no tienen permiso.
       - Prender/apagar un interruptor en `/roles` → el menú y la ruta cambian (200 ↔ 403).
       - Duplicar un rol copia sus permisos; borrar un rol borra sus filas en la pivote.
-      - Contar consultas por página (no debe crecer con cada `@can`).
+      - Contar consultas por página (no debe crecer con cada `@can`). No se midió: se cubre por diseño
+        (propiedad de relación + `with('permisos')`).
+      Resultado 2026-11-05: todo OK (Admin 200; Nominas 200/403; toggle 403→200→403; anti-bloqueo 422;
+      crear = 0 filas; duplicar = mismas 4; borrar = 0 huérfanas; JSON = pivote en los 6 roles).
 - [ ] 12. Ya estable (semanas después): migración que elimina la columna `roles.permissions` y
       quitar el cast `'permissions' => 'array'` y `defaultPermissions()` si ya no se usan.
 
@@ -83,6 +88,17 @@ permission_role  role_id → roles.id | permission_id → permissions.id | PK (r
 
 No se tocan: `routes/web.php`, `AppServiceProvider` (Gate), `app/Models/Usuario.php`,
 `layouts/app.blade.php`, vistas con `@can`.
+
+## Producción
+
+En cada ambiente nuevo (antes o junto con el deploy del código):
+
+1. `php artisan migrate --path=database/migrations/2026_11_04_000000_create_permissions_tables.php`
+   (o el SQL equivalente + INSERT en `migrations`, como en .117).
+2. `php artisan db:seed --class=PermissionsSeeder` (15 permisos).
+3. Si la tabla `roles` ya tiene roles: la copia de "Copiar JSON a la pivote" (ensayo → copia → verificación).
+   Si está vacía: `php artisan db:seed --class=RolesSeeder` (crea roles y su pivote).
+4. Probar con Admin que entra a `/roles` antes de dar acceso a los demás.
 
 ## Copiar JSON a la pivote (SQL)
 
