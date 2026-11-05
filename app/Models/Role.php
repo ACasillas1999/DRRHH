@@ -34,25 +34,19 @@ class Role extends Model
      */
     public function hasPermission(string $key): bool
     {
-        [$section, $item] = array_pad(explode('.', $key, 2), 2, null);
-        $perms = $this->permissions ?? [];
+        // $this->permisos (propiedad, no método) consulta la pivote una sola vez y la reutiliza:
+        // aunque la página tenga muchos @can, es 1 consulta por petición
+        if (!str_contains($key, '.')) {
+            return $this->permisos->contains('seccion', $key);
+        }
 
-        return $item === null ? !empty($perms[$section]) : !empty($perms[$section][$item]);
+        return $this->permisos->contains('clave', $key);
     }
 
     /** Lista plana de permisos activos, p.ej. ["modules.empleados", ...]. */
     public function permisosActivos(): array
     {
-        $activos = [];
-        foreach ($this->permissions ?? [] as $section => $items) {
-            foreach ($items as $key => $on) {
-                if ($on) {
-                    $activos[] = "{$section}.{$key}";
-                }
-            }
-        }
-
-        return $activos;
+        return $this->permisos->pluck('clave')->all();
     }
 
     /** Todos los permisos del catálogo (config/permissions.php) en false. */
