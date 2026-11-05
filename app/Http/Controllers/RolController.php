@@ -142,14 +142,21 @@ class RolController extends Controller
             $nombre = $role->name . " (copia {$n})";
         }
 
-        $copia = Role::create([
-            'name'        => $nombre,
-            'slug'        => $this->slugUnico($nombre),
-            'description' => $role->description,
-            'color'       => $role->color,
-            'is_system'   => false,
-            'permissions' => $role->permissions,
-        ]);
+        $copia = DB::transaction(function () use ($role, $nombre) {
+            $copia = Role::create([
+                'name'        => $nombre,
+                'slug'        => $this->slugUnico($nombre),
+                'description' => $role->description,
+                'color'       => $role->color,
+                'is_system'   => false,
+                'permissions' => $role->permissions,
+            ]);
+
+            // Copia las filas de la pivote: sin esto la copia nace sin acceso a nada
+            $copia->permisos()->sync($role->permisos->pluck('id'));
+
+            return $copia;
+        });
 
         return redirect()->route('roles.index', ['rol' => $copia->id])->with('status', "Rol \"{$nombre}\" creado como copia de \"{$role->name}\".");
     }
