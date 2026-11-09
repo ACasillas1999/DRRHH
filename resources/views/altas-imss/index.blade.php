@@ -41,10 +41,9 @@
     tbody td { padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border-color); font-size: 0.82rem; white-space: nowrap; }
     /* Columnas de texto largo: bajan de renglón en vez de ensanchar la tabla */
     tbody td.col-texto { white-space: normal; min-width: 120px; max-width: 180px; }
-    /* Empleado = nombre (liga a detalles) + número debajo; antes eran 3 columnas */
+    /* Empleado = nombre + número debajo (solo texto; los detalles se abren desde la columna Acciones) */
     tbody td.col-empleado { white-space: normal; min-width: 180px; max-width: 240px; }
-    .empleado-nombre { display: block; color: var(--text-main); font-weight: 600; text-decoration: none; }
-    .empleado-nombre:hover { color: var(--primary); text-decoration: underline; }
+    .empleado-nombre { display: block; color: var(--text-main); font-weight: 600; }
     .empleado-num { font-size: 0.72rem; color: var(--text-muted); }
     tbody tr:last-child td { border-bottom: none; }
     tbody tr:hover { background-color: var(--primary-light); }
@@ -101,6 +100,8 @@
                     <th>N° IMSS</th>
                     <th>Razón Social</th>
                     <th>Ubicación Física</th>
+                    {{-- Columna nueva: el nombre ya no es enlace, los detalles se abren desde aquí --}}
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -111,7 +112,8 @@
                     @endphp
                     <tr>
                         <td class="col-empleado">
-                            <a class="empleado-nombre" href="{{ route('empleados.show', $r->N_Empleado) }}" title="Ver detalles">{{ $r->Nombre_Completo }}</a>
+                            {{-- Solo texto: ya no lleva a detalles (eso pasó a la columna Acciones) --}}
+                            <span class="empleado-nombre">{{ $r->Nombre_Completo }}</span>
                             <span class="empleado-num">N° {{ $r->N_Empleado }}</span>
                         </td>
                         <td><span class="estatus-pill {{ $esActivo ? 'estatus-activo' : 'estatus-baja' }}">{{ $r->Estatus }}</span></td>
@@ -148,9 +150,12 @@
                         <td>{{ $r->IMSS }}</td>
                         <td class="col-texto">{{ $r->Nomeclatura }}</td>
                         <td class="col-texto">{{ $r->Fisica }}</td>
+                        {{-- Acciones: abre el expediente del empleado (misma ruta que antes tenía el nombre) --}}
+                        <td><a class="ver-link" href="{{ route('empleados.show', $r->N_Empleado) }}">Ver detalles</a></td>
                     </tr>
                 @empty
-                    <tr><td colspan="9" class="empty-state">No hay registros pendientes de alta/baja IMSS.</td></tr>
+                    {{-- colspan 10: son 10 columnas con la nueva de Acciones --}}
+                    <tr><td colspan="10" class="empty-state">No hay registros pendientes de alta/baja IMSS.</td></tr>
                 @endforelse
             </tbody>
         </table>
