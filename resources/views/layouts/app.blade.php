@@ -761,23 +761,34 @@
                 <span>Reportes</span>
             </a>
 
-            <!-- 7. Usuarios -->
-            <a href="{{ route('usuarios.index') }}" class="menu-item {{ Request::is('usuarios*') ? 'active' : '' }}" data-perm="modules.usuarios">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                <span>Usuarios</span>
-            </a>
-
-            <!-- 7b. Roles y Permisos -->
-            <a href="{{ route('roles.index') }}" class="menu-item {{ Request::is('roles*') ? 'active' : '' }}" data-perm="modules.roles">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    <path d="M9 12l2 2 4-4"></path>
-                </svg>
-                <span>Roles y Permisos</span>
-            </a>
+            <!-- 7. Configuración (Desplegable en Acordeón): agrupa Usuarios y Roles y Permisos -->
+            {{-- El padre se muestra si el rol tiene al menos uno de los dos permisos (data-perm separado por coma) --}}
+            <div class="menu-item-group" style="display: flex; flex-direction: column;">
+                <a href="javascript:void(0)" class="menu-item menu-parent-toggle {{ Request::is('usuarios*') || Request::is('roles*') ? 'active parent-active' : '' }}" onclick="toggleSidebarMenu(this)" data-perm="modules.usuarios,modules.roles">
+                    {{-- Ícono de engrane --}}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span>Configuración</span>
+                    {{-- Flecha del acordeón (gira al abrir, igual que Puestos) --}}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="menu-chevron">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </a>
+                {{-- Abierto si estás en /usuarios o /roles; cerrado en cualquier otra página --}}
+                <div class="menu-subitems {{ Request::is('usuarios*') || Request::is('roles*') ? '' : 'hidden' }}">
+                    {{-- Cada hijo conserva su propio permiso --}}
+                    <a href="{{ route('usuarios.index') }}" class="menu-item menu-subitem {{ Request::is('usuarios*') ? 'active' : '' }}" data-perm="modules.usuarios">
+                        <span class="subitem-bullet"></span>
+                        <span>Usuarios</span>
+                    </a>
+                    <a href="{{ route('roles.index') }}" class="menu-item menu-subitem {{ Request::is('roles*') ? 'active' : '' }}" data-perm="modules.roles">
+                        <span class="subitem-bullet"></span>
+                        <span>Roles y Permisos</span>
+                    </a>
+                </div>
+            </div>
 
             <!-- 8. Historial -->
             <a href="{{ route('historial.index') }}" class="menu-item {{ Request::is('historial*') ? 'active' : '' }}" data-perm="modules.historial">
